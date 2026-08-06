@@ -44,8 +44,10 @@ export class RolesGuard implements CanActivate {
     }
 
     // Tomamos el usuario que el JwtAuthGuard ya dejó "enganchado"
-    // en la petición, y comparamos su rol contra los permitidos.
-    const { usuario } = contexto.switchToHttp().getRequest();
+    // en la petición (Passport SIEMPRE lo guarda como "request.user",
+    // en inglés, es un detalle interno de esa librería), y comparamos
+    // su rol contra los permitidos.
+    const { user: usuario } = contexto.switchToHttp().getRequest();
     return rolesRequeridos.some((rolPermitido) => usuario?.rol === rolPermitido);
   }
 }
