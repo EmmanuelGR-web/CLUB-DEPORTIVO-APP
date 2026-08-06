@@ -12,19 +12,24 @@
 // el rol de alguien que ni siquiera mandó un token válido.
 // =====================================================================
 
-import { Body, Controller, Get, Param, Patch, UseGuards } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { Body, Controller, Get, Patch, Post, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { ApiBearerAuth, ApiBody, ApiConsumes, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../comun/guards/jwt-auth.guard';
 import { UsuarioActual, UsuarioAutenticado } from '../../comun/decoradores/usuario-actual.decorator';
 import { SociosService } from './socios.service';
 import { ActualizarSocioDto } from './dto/actualizar-socio.dto';
+import { AlmacenamientoService } from '../almacenamiento/almacenamiento.service';
 
 @ApiTags('Socios')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
 @Controller('socios')
 export class SociosController {
-  constructor(private readonly sociosService: SociosService) {}
+  constructor(
+    private readonly sociosService: SociosService,
+    private readonly almacenamientoService: AlmacenamientoService,
+  ) {}
 
   // El propio socio consulta sus datos (usa el id que viene del token,
   // no un id cualquiera de la URL, así nadie puede "espiar" a otro
@@ -51,5 +56,33 @@ export class SociosController {
   })
   async obtenerMiCarnet(@UsuarioActual() usuario: UsuarioAutenticado) {
     return this.sociosService.obtenerCarnet(usuario.id);
+  }
+
+  // Recibe la foto que el socio elige desde su celular o computadora
+  // y la guarda para usarla en el carnet digital. Usa
+  // "multipart/form-data" (el formato estándar para subir archivos
+  // por HTTP), no JSON, por eso lleva @ApiConsumes.
+  @Post('mi-carnet/foto')
+  @UseInterceptors(FileInterceptor('foto'))
+  @ApiConsumes('multipart/form-data')
+  @ApiOperation({ summary: 'Sube o reemplaza la foto de carnet del socio logueado' })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        // "format: binary" es justo lo que le indica a Swagger que
+        // tiene que dibujar un selector de archivo acá, en vez de
+        // una caja de texto común.
+        foto: { type: 'string', format: 'binary' },
+      },
+    },
+  })
+  async subirFotoCarnet(
+    @UsuarioActual() usuario: UsuarioAutenticado,
+    @UploadedFile() archivo: Express.Multer.File,
+  ) {
+    const urlNueva = await this.almacenamientoService.subirFotoCarnet(usuario.id, archivo);
+    await this.sociosService.actualizarFotoCarnet(usuario.id, urlNueva);
+    return { fotoCarnetUrl: urlNueva };
   }
 }
