@@ -18,6 +18,7 @@ import { Repository } from 'typeorm';
 import { Socio } from './entidades/socio.entity';
 import { CategoriaSocio } from './entidades/categoria-socio.entity';
 import { ActualizarSocioDto } from './dto/actualizar-socio.dto';
+import { generarCodigoBarras } from '../../comun/utilidades/codigo-barras.util';
 
 @Injectable()
 export class SociosService {
@@ -107,17 +108,52 @@ export class SociosService {
 
   // Calcula y asigna la categoría (oro/plata/bronce) de un socio
   // según sus años de antigüedad, comparando contra los rangos
-  // definidos en la tabla categorias_socio.
+  // definidos en la tabla categorias_socio. Este método SÍ persiste
+  // el cambio en la base (útil para un proceso administrativo que
+  // recalcule categorías de forma masiva, por ejemplo una vez por mes).
   async actualizarCategoriaPorAntiguedad(socio: Socio): Promise<Socio> {
     const anios = socio.calcularAntiguedadEnAnios();
+    socio.categoria = await this.buscarCategoriaPorAnios(anios);
+    return this.repositorioSocios.save(socio);
+  }
 
-    const categoriaCorrespondiente = await this.repositorioCategorias
+  // Busca la categoría (oro/plata/bronce) que corresponde a una
+  // cantidad de años determinada, comparando contra los rangos
+  // configurados en la tabla categorias_socio.
+  private async buscarCategoriaPorAnios(anios: number): Promise<CategoriaSocio | null> {
+    return this.repositorioCategorias
       .createQueryBuilder('categoria')
       .where('categoria.aniosMinimos <= :anios', { anios })
       .andWhere('(categoria.aniosMaximos IS NULL OR categoria.aniosMaximos >= :anios)', { anios })
       .getOne();
+  }
 
-    socio.categoria = categoriaCorrespondiente;
-    return this.repositorioSocios.save(socio);
+  // Arma toda la información del carnet digital de un socio: sus
+  // datos básicos, la antigüedad y categoría CALCULADAS AL MOMENTO
+  // (no depende de que alguien haya "recalculado" antes, siempre está
+  // al día), y el código de barras único para ese socio.
+  //
+  // Importante: esto NO escribe en la base de datos (es una consulta
+  // de solo lectura), así que se puede llamar tantas veces como haga
+  // falta sin generar carga extra ni afectar la auditoría.
+  async obtenerCarnet(idInterno: string) {
+    const socio = await this.buscarPorId(idInterno);
+    const antiguedadAnios = socio.calcularAntiguedadEnAnios();
+
+    // La categoría "en vivo" puede diferir de la guardada en la base
+    // si pasó tiempo desde el último recálculo (ej: un socio cumplió
+    // años de antigüedad hoy). Para el carnet siempre mostramos la
+    // categoría real y actualizada, calculándola acá mismo.
+    const categoriaActual = await this.buscarCategoriaPorAnios(antiguedadAnios);
+
+    return {
+      idSocio: socio.idSocio.toString(),
+      nombreCompleto: `${socio.nombre} ${socio.apellido}`,
+      fotoCarnetUrl: socio.fotoCarnetUrl,
+      antiguedadAnios,
+      categoria: categoriaActual?.nombre ?? 'Sin categoría',
+      socioActivo: socio.activo,
+      codigoBarras: generarCodigoBarras(socio.idSocio),
+    };
   }
 }
