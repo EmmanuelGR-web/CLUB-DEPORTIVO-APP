@@ -128,6 +128,16 @@ export class SociosService {
       .getOne();
   }
 
+  // Guarda la URL de la foto de carnet que ya fue subida a Supabase
+  // Storage. Este servicio NO sabe nada de cómo se subió el archivo
+  // (esa responsabilidad es 100% de AlmacenamientoService) — solo
+  // actualiza la columna correspondiente.
+  async actualizarFotoCarnet(idSocio: string, nuevaUrl: string): Promise<Socio> {
+    const socio = await this.buscarPorId(idSocio);
+    socio.fotoCarnetUrl = nuevaUrl;
+    return this.repositorioSocios.save(socio);
+  }
+
   // Arma toda la información del carnet digital de un socio: sus
   // datos básicos, la antigüedad y categoría CALCULADAS AL MOMENTO
   // (no depende de que alguien haya "recalculado" antes, siempre está

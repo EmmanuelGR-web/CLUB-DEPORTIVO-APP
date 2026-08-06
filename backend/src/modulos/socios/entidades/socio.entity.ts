@@ -102,7 +102,7 @@ export class Socio {
   // que siempre esté actualizada sin necesidad de un proceso batch.
   // ---------------------------------------------------------------
   calcularAntiguedadEnAnios(): number {
-    // IMPORTANTE: TypeORM devuelve las columnas de tipo "date" de
+    // IMPORTANT: TypeORM returns the columns of type "date" of
     // PostgreSQL como STRING (ej: "2026-08-05"), no como objeto Date
     // de JavaScript, aunque acá arriba la propiedad esté tipada como
     // "Date". Por eso hay que convertirla explícitamente antes de
