@@ -11,9 +11,10 @@ import { Socio } from './entidades/socio.entity';
 import { CategoriaSocio } from './entidades/categoria-socio.entity';
 import { SociosService } from './socios.service';
 import { SociosController } from './socios.controller';
+import { AlmacenamientoModule } from '../almacenamiento/almacenamiento.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Socio, CategoriaSocio])],
+  imports: [TypeOrmModule.forFeature([Socio, CategoriaSocio]), AlmacenamientoModule],
   controllers: [SociosController],
   providers: [SociosService],
   exports: [SociosService], // lo necesita AutenticacionModule para el login
