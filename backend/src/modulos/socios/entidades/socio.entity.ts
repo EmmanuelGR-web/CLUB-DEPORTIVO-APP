@@ -102,11 +102,20 @@ export class Socio {
   // que siempre esté actualizada sin necesidad de un proceso batch.
   // ---------------------------------------------------------------
   calcularAntiguedadEnAnios(): number {
+    // IMPORTANTE: TypeORM devuelve las columnas de tipo "date" de
+    // PostgreSQL como STRING (ej: "2026-08-05"), no como objeto Date
+    // de JavaScript, aunque acá arriba la propiedad esté tipada como
+    // "Date". Por eso hay que convertirla explícitamente antes de
+    // usar métodos como .getFullYear(); si no, falla en tiempo de
+    // ejecución aunque TypeScript no marque ningún error al compilar.
+    const fechaAltaComoDate = new Date(this.fechaAlta);
     const hoy = new Date();
-    let anios = hoy.getFullYear() - this.fechaAlta.getFullYear();
+
+    let anios = hoy.getFullYear() - fechaAltaComoDate.getFullYear();
     const noCumplioAnioTodavia =
-      hoy.getMonth() < this.fechaAlta.getMonth() ||
-      (hoy.getMonth() === this.fechaAlta.getMonth() && hoy.getDate() < this.fechaAlta.getDate());
+      hoy.getMonth() < fechaAltaComoDate.getMonth() ||
+      (hoy.getMonth() === fechaAltaComoDate.getMonth() &&
+        hoy.getDate() < fechaAltaComoDate.getDate());
     if (noCumplioAnioTodavia) anios--;
     return anios;
   }
