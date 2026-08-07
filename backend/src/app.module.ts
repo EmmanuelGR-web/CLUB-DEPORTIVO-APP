@@ -18,6 +18,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import configuracionBaseDatos from './config/database.config';
 import { AutenticacionModule } from './modulos/autenticacion/autenticacion.module';
 import { SociosModule } from './modulos/socios/socios.module';
+import { PagosModule } from './modulos/pagos/pagos.module';
 
 @Module({
   imports: [
@@ -35,10 +36,11 @@ import { SociosModule } from './modulos/socios/socios.module';
     // --- Módulos de dominio ---
     AutenticacionModule,
     SociosModule,
+    PagosModule,
 
     // A medida que avancemos con las siguientes fases, acá se van
-    // agregando: PagosModule, DisciplinasModule, ClubInfoModule,
-    // BeneficiosModule, AdminModule, ChatbotModule, etc.
+    // agregando: DisciplinasModule, ClubInfoModule, BeneficiosModule,
+    // AdminModule, ChatbotModule, etc.
   ],
 })
 export class AppModule {}
