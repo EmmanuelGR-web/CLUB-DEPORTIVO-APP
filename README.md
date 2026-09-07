@@ -22,7 +22,7 @@ Autor: Emmanuel Gonzalez.
 | Autenticación | JWT (JSON Web Tokens) + bcrypt |
 | Frontend | React + Next.js |
 | Almacenamiento de imágenes | Supabase Storage |
-| Hosting backend | Railway o Render |
+| Hosting backend | Railway |
 | Hosting frontend | Vercel |
 
 ## Estructura del repositorio
@@ -39,7 +39,6 @@ club-deportivo/
 - [Guía completa del proyecto y puesta en marcha](docs/README-club-deportivo.md)
 - [Manual de usuario (Español)](docs/manual-usuario-es.md)
 - [Manual de usuario (English)](docs/manual-usuario-en.md)
-- [Guía de commits y flujo de Git](docs/guia-commits.md)
 - [README del backend](backend/README.md)
 
 ## Principios de diseño aplicados
