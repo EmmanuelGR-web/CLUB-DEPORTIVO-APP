@@ -17,20 +17,20 @@ Autor: Emmanuel Gonzalez.
 | Capa | Tecnología |
 |---|---|
 | Backend | NestJS (Node.js) + TypeScript |
-| Base de datos | PostgreSQL (recomendado: Supabase o Railway) |
+| Base de datos | PostgreSQL: Supabase |
 | ORM | TypeORM |
 | Autenticación | JWT (JSON Web Tokens) + bcrypt |
 | Frontend | React + Next.js |
-| Almacenamiento de imágenes | Supabase Storage / Cloudflare R2 |
+| Almacenamiento de imágenes | Supabase Storage |
 | Hosting backend | Railway o Render |
 | Hosting frontend | Vercel |
 
 ## Estructura del repositorio
 
 ```
-club-san-martin/
-├── backend/     → API REST (ver backend/README.md)
-├── frontend/    → Aplicación web (se agrega en la Fase 5)
+club-deportivo/
+├── backend/     → API REST
+├── frontend/    → Aplicación web 
 └── docs/        → Manuales de usuario y guías del proyecto
 ```
 
