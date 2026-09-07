@@ -45,9 +45,9 @@ async function iniciarAplicacion() {
   // Documentación automática de la API con Swagger.
   // Una vez levantado el server, se puede ver en: http://localhost:3000/documentacion
   const documentoSwagger = new DocumentBuilder()
-    .setTitle('API - Club Atlético San Martín de Tucumán')
+    .setTitle('API - CLUB DEPORTIVO')
     .setDescription(
-      'API para la gestión de socios, pagos, disciplinas deportivas y administración del club',
+      'API para la gestión de socios, pagos, disciplinas deportivas y administración de CLUB DEPORTIVO',
     )
     .setVersion('0.1')
     .addBearerAuth() // permite probar endpoints protegidos con JWT desde la interfaz de Swagger

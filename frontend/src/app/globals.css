@@ -1,0 +1,62 @@
+/* =====================================================================
+   globals.css
+   -----------------------------------------------------------------------
+   Estilos base de toda la aplicación. Acá se define el fondo con las
+   rayas verticales sutiles (guiño al escudo del club) que se repite
+   como motivo de fondo en pantallas clave como el carnet digital.
+   ===================================================================== */
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+}
+
+.dark {
+  color-scheme: dark;
+}
+
+body {
+  @apply bg-hueso text-carbon dark:bg-carbon dark:text-hueso transition-colors duration-300;
+  font-family: var(--font-inter), sans-serif;
+}
+
+/* Motivo de rayas verticales sutiles, inspirado en el escudo del club.
+   Se usa como fondo decorativo en el carnet digital y en pantallas de
+   autenticación, nunca detrás de texto largo (afectaría la lectura). */
+.rayas-club {
+  background-image: repeating-linear-gradient(
+    90deg,
+    rgba(198, 32, 51, 0.86) 6.5px,
+    rgba(139, 18, 32, 0.61) 14px,
+    transparent 14px,
+    transparent 28px
+  );
+}
+
+.dark .rayas-club {
+  background-image: repeating-linear-gradient(
+    90deg,
+    rgba(201, 162, 39, 0.05) 0px,
+    rgba(201, 162, 39, 0.05) 14px,
+    transparent 14px,
+    transparent 28px
+  );
+}
+
+/* Foco de teclado visible siempre, por accesibilidad. Nunca se quita
+   el outline sin reemplazarlo por algo igual de visible. */
+:focus-visible {
+  outline: 2px solid theme('colors.dorado');
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

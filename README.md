@@ -1,4 +1,4 @@
-# CLUB DEPORTIVO — Sistema de Gestión 
+# CLUB DEPORTIVO — Sistema de Gestión de Socios
 
 Proyecto de tesis — Tecnicatura Universitaria en Programación, UTN FRT.
 Autor: Emmanuel Gonzalez.
@@ -36,6 +36,7 @@ club-san-martin/
 
 ## Documentación
 
+- [Guía completa del proyecto y puesta en marcha](docs/README-club-deportivo.md)
 - [Manual de usuario (Español)](docs/manual-usuario-es.md)
 - [Manual de usuario (English)](docs/manual-usuario-en.md)
 - [Guía de commits y flujo de Git](docs/guia-commits.md)
