@@ -1,4 +1,4 @@
-# Club Atlético San Martín de Tucumán — Sistema de Gestión de Socios
+# CLUB DEPORTIVO — Sistema de Gestión 
 
 Proyecto de tesis — Tecnicatura Universitaria en Programación, UTN FRT.
 Autor: Emmanuel Gonzalez.
