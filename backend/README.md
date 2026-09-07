@@ -1,4 +1,4 @@
-# Backend - Club Atlético San Martín de Tucumán
+# Backend - CLUB DEPORTIVO
 
 API construida con **NestJS + TypeScript + PostgreSQL (TypeORM)**.
 

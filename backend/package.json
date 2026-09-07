@@ -1,7 +1,7 @@
 {
-  "name": "club-san-martin-backend",
+  "name": "club-deportivo-backend",
   "version": "0.1.0",
-  "description": "API del Club Atlético San Martín de Tucumán - Gestión de socios, pagos y disciplinas deportivas",
+  "description": "API de CLUB DEPORTIVO - Gestión de socios, pagos y disciplinas deportivas",
   "author": "Emmanuel Gonzalez",
   "license": "UNLICENSED",
   "scripts": {
