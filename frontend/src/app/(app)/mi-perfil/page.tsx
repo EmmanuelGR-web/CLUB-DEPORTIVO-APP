@@ -39,6 +39,7 @@ export default function PaginaMiPerfil() {
         nombre: perfil.nombre,
         apellido: perfil.apellido,
         telefono: perfil.telefono ?? undefined,
+        fechaNacimiento: perfil.fechaNacimiento ?? undefined,
         ciudad: perfil.ciudad ?? undefined,
         provincia: perfil.provincia ?? undefined,
         direccion: perfil.direccion ?? undefined,
@@ -101,6 +102,13 @@ export default function PaginaMiPerfil() {
             etiqueta="Teléfono"
             value={perfil.telefono ?? ''}
             onChange={(e) => actualizarCampo('telefono', e.target.value)}
+          />
+
+          <CampoTexto
+            etiqueta="Fecha de nacimiento"
+            type="date"
+            value={perfil.fechaNacimiento ? perfil.fechaNacimiento.slice(0, 10) : ''}
+            onChange={(e) => actualizarCampo('fechaNacimiento', e.target.value)}
           />
 
           <div className="grid grid-cols-2 gap-3">
