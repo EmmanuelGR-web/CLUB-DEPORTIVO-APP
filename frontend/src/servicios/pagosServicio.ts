@@ -1,5 +1,5 @@
 import { clienteApi } from './clienteApi';
-import { EstadoCuentaItem } from '@/tipos';
+import { Comprobante, EstadoCuentaItem } from '@/tipos';
 
 export interface Cuota {
   id: string;
@@ -22,5 +22,9 @@ export const pagosServicio = {
       method: 'POST',
       body: JSON.stringify(datos),
     });
+  },
+
+  obtenerComprobante(pagoId: string) {
+    return clienteApi<Comprobante>(`/pagos/${pagoId}/comprobante`);
   },
 };
