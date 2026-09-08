@@ -1,5 +1,5 @@
 import { clienteApi } from './clienteApi';
-import { EstadoCuentaItem } from '@/tipos';
+import { Comprobante, EstadoCuentaItem } from '@/tipos';
 
 export interface Cuota {
   id: string;
@@ -39,20 +39,39 @@ export const pagosServicio = {
     });
   },
 
+  // --- Panel del socio ---
+
+  obtenerComprobante(pagoId: string) {
+    return clienteApi<Comprobante>(`/pagos/${pagoId}/comprobante`);
+  },
+
+  // --- Panel de administración ---
+
   listarPagosPendientes() {
     return clienteApi<PagoPendiente[]>('/pagos/pendientes');
   },
 
-  actualizarEstadoPago(id: string, estado: 'aprobado' | 'rechazado') {
+  obtenerPago(id: string) {
+    return clienteApi<PagoPendiente>(`/pagos/${id}`);
+  },
+
+  actualizarEstadoPago(id: string, estado: 'aprobado' | 'rechazado', observacion?: string) {
     return clienteApi<PagoPendiente>(`/pagos/${id}/estado`, {
       method: 'PATCH',
-      body: JSON.stringify({ estado }),
+      body: JSON.stringify({ estado, observacion }),
     });
   },
 
   crearCuota(datos: { periodo: string; monto: number; fechaVencimiento: string }) {
     return clienteApi<Cuota>('/cuotas', {
       method: 'POST',
+      body: JSON.stringify(datos),
+    });
+  },
+
+  actualizarCuota(id: string, datos: { monto?: number; fechaVencimiento?: string }) {
+    return clienteApi<Cuota>(`/cuotas/${id}`, {
+      method: 'PATCH',
       body: JSON.stringify(datos),
     });
   },
