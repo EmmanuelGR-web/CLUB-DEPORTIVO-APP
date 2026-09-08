@@ -12,7 +12,7 @@
 // antes de guardar nada.
 // =====================================================================
 
-import { IsEmail, IsString, MinLength, MaxLength, IsOptional } from 'class-validator';
+import { IsDateString, IsEmail, IsString, MinLength, MaxLength, IsOptional } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class RegistrarSocioDto {
@@ -40,4 +40,27 @@ export class RegistrarSocioDto {
   @IsString()
   @MaxLength(20)
   telefono?: string;
+
+  @ApiPropertyOptional({ example: '1995-06-20' })
+  @IsOptional()
+  @IsDateString()
+  fechaNacimiento?: string;
+
+  @ApiPropertyOptional({ example: 'San Miguel de Tucumán' })
+  @IsOptional()
+  @IsString()
+  @MaxLength(100)
+  ciudad?: string;
+
+  @ApiPropertyOptional({ example: 'Tucumán' })
+  @IsOptional()
+  @IsString()
+  @MaxLength(100)
+  provincia?: string;
+
+  @ApiPropertyOptional({ example: '25 de Mayo 123' })
+  @IsOptional()
+  @IsString()
+  @MaxLength(200)
+  direccion?: string;
 }

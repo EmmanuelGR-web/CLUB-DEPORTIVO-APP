@@ -44,6 +44,7 @@ export interface Perfil {
   apellido: string;
   email: string;
   telefono: string | null;
+  fechaNacimiento: string | null;
   ciudad: string | null;
   provincia: string | null;
   direccion: string | null;

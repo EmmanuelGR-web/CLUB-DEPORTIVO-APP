@@ -52,7 +52,7 @@ export default function PaginaLogin() {
         }
       `}</style>
 
-      <main className="relative flex h-screen w-full overflow-hidden flex-col items-center justify-center bg-gray-100 px-4 dark:bg-gray-900">
+      <main className="relative flex min-h-screen w-full overflow-hidden flex-col items-center justify-center bg-hueso px-4 py-8 dark:bg-carbon">
         
         {/* Capa de fondo animado con colores del club */}
         <div 
@@ -83,7 +83,7 @@ export default function PaginaLogin() {
         </div>
 
         {/* Tarjeta del Formulario */}
-        <div className="relative z-10 mx-auto w-full max-w-sm overflow-hidden rounded-2xl bg-white/90 p-8 shadow-2xl backdrop-blur-lg transition-all duration-300 border border-red-200 dark:bg-gray-800/90 dark:border-red-800">
+        <div className="relative z-10 mx-auto w-full max-w-sm overflow-hidden rounded-2xl border border-rojo-club/20 bg-white/90 p-8 shadow-2xl backdrop-blur-lg transition-all duration-300 dark:border-dorado/20 dark:bg-carbon-suave/95">
           
           <div className="mb-6 text-center">
             <div className="mx-auto mb-4 flex justify-center">
@@ -93,10 +93,10 @@ export default function PaginaLogin() {
                 className="h-24 w-24 object-contain drop-shadow-lg"
               />
             </div>
-            <h1 className="font-titulo text-2xl font-bold uppercase tracking-wide text-gray-800 dark:text-white">
+            <h1 className="font-titulo text-2xl font-bold uppercase tracking-wide">
               CLUB DEPORTIVO
             </h1>
-            <p className="mt-1 font-cuerpo text-sm text-gray-600 dark:text-gray-300">
+            <p className="mt-1 font-cuerpo text-sm text-carbon/60 dark:text-hueso/60">
               Portal de socios
             </p>
           </div>
@@ -127,14 +127,14 @@ export default function PaginaLogin() {
               </p>
             )}
 
-            <Boton type="submit" cargando={cargando} className="mt-2 w-full bg-red-600 hover:bg-red-700 text-white transition-colors shadow-lg">
+            <Boton type="submit" cargando={cargando} className="mt-2 w-full shadow-lg">
               {cargando ? 'Ingresando...' : 'Ingresar'}
             </Boton>
           </form>
 
-          <p className="mt-6 text-center font-cuerpo text-sm text-gray-600 dark:text-gray-300">
+          <p className="mt-6 text-center font-cuerpo text-sm text-carbon/60 dark:text-hueso/60">
             ¿Todavía no sos socio?{' '}
-            <Link href="/registro" className="font-bold text-red-600 hover:text-red-700 hover:underline dark:text-crimson-800 dark:hover:text-red-300 transition-colors">
+            <Link href="/registro" className="font-bold text-rojo-club transition-colors hover:text-rojo-profundo hover:underline dark:text-dorado dark:hover:text-yellow-300">
               Creá tu cuenta
             </Link>
           </p>

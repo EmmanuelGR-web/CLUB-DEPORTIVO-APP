@@ -108,7 +108,7 @@ export default function PaginaPagos() {
           const puedePagar = item.estadoPago === 'sin_pagar' || item.estadoPago === 'rechazado';
 
           return (
-            <Tarjeta key={item.cuotaId} className="flex items-center justify-between gap-4">
+            <Tarjeta key={item.cuotaId} className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
               <div>
                 <p className="font-titulo text-lg font-semibold">Cuota {item.periodo}</p>
                 <p className="font-cuerpo text-sm text-carbon/60 dark:text-hueso/60">
@@ -117,14 +117,14 @@ export default function PaginaPagos() {
                 </p>
               </div>
 
-              <div className="flex items-center gap-3">
+              <div className="flex w-full flex-wrap items-center justify-between gap-3 sm:w-auto sm:justify-end">
                 <span className={`rounded-full px-3 py-1 font-cuerpo text-xs font-medium ${estilo.clase}`}>
                   {estilo.texto}
                 </span>
 
                 {puedePagar && (
                   <select
-                    className="rounded-lg border border-carbon/15 bg-white px-2 py-1.5 font-cuerpo text-sm dark:border-white/15 dark:bg-carbon"
+                    className="rounded-lg border border-carbon/15 bg-white px-2 py-1.5 font-cuerpo text-sm text-carbon dark:border-white/15 dark:bg-carbon dark:text-hueso"
                     defaultValue=""
                     disabled={pagandoCuotaId === item.cuotaId}
                     onChange={(e) => {
