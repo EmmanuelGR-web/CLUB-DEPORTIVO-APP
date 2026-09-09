@@ -35,6 +35,26 @@ export interface EstadoCuentaItem {
   monto: string;
   fechaVencimiento: string;
   estadoPago: 'pendiente' | 'aprobado' | 'rechazado' | 'sin_pagar';
+  // Presentes solo si ya existe un pago (vivo o rechazado) para esta
+  // cuota; null si todavía no se declaró ningún pago.
+  pagoId: string | null;
+  numeroComprobante: string | null;
+}
+
+// Cupón/comprobante de un pago ya aprobado (ver PagosService.obtenerComprobante
+// en el backend). Pensado para mostrarlo en pantalla o convertirlo a PDF.
+export interface Comprobante {
+  numeroComprobante: string;
+  fechaEmision: string;
+  socio: {
+    idSocio: string;
+    nombreCompleto: string;
+  };
+  cuota: {
+    periodo: string;
+  };
+  medioPago: 'efectivo' | 'transferencia' | 'debito' | 'credito';
+  monto: string;
 }
 
 export interface Perfil {
@@ -44,6 +64,7 @@ export interface Perfil {
   apellido: string;
   email: string;
   telefono: string | null;
+  fechaNacimiento: string | null;
   ciudad: string | null;
   provincia: string | null;
   direccion: string | null;

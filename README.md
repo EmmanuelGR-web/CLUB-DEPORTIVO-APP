@@ -17,12 +17,12 @@ Autor: Emmanuel Gonzalez.
 | Capa | Tecnología |
 |---|---|
 | Backend | NestJS (Node.js) + TypeScript |
-| Base de datos | PostgreSQL: Supabase |
+| Database | PostgreSQL: Supabase |pabase or Railway) |
 | ORM | TypeORM |
 | Autenticación | JWT (JSON Web Tokens) + bcrypt |
 | Frontend | React + Next.js |
 | Almacenamiento de imágenes | Supabase Storage |
-| Hosting backend | Railway |
+| Backend hosting | Railway |
 | Hosting frontend | Vercel |
 
 ## Estructura del repositorio

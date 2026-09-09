@@ -7,7 +7,7 @@
 // pagan, pero no las crean ni las modifican.
 // =====================================================================
 
-import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
 
 @Entity('cuotas')
 export class Cuota {
@@ -31,4 +31,12 @@ export class Cuota {
 
   @CreateDateColumn({ name: 'creado_en' })
   creadoEn: Date;
+
+  // Se actualiza cada vez que el admin corrige el monto o la fecha
+  // de vencimiento de esta cuota (ver PagosService.actualizarCuota).
+  // Importante: los pagos YA registrados no se ven afectados por este
+  // cambio, porque "Pago.monto" guarda una copia del valor vigente al
+  // momento de pagar, no una referencia viva a esta fila.
+  @UpdateDateColumn({ name: 'actualizado_en' })
+  actualizadoEn: Date;
 }

@@ -16,6 +16,10 @@ export default function PaginaRegistro() {
     email: '',
     contrasena: '',
     telefono: '',
+    fechaNacimiento: '',
+    ciudad: '',
+    provincia: '',
+    direccion: '',
   });
   const [error, setError] = useState('');
   const [cargando, setCargando] = useState(false);
@@ -43,7 +47,7 @@ export default function PaginaRegistro() {
         <ConmutadorTema />
       </div>
 
-      <div className="w-full max-w-sm" style={{ border: '1px solid #ccc', padding: '20px', borderRadius: '8px', backgroundColor: '#fff', boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)', background: 'linear-gradient(135deg, #f5f5f5, #e0e0e0)' }}>
+      <div className="w-full max-w-lg rounded-2xl border border-carbon/10 bg-white p-6 shadow-xl dark:border-white/10 dark:bg-carbon-suave sm:p-8">
         <div className="mb-8 text-center">
           <h1 className="font-titulo text-3xl font-bold uppercase tracking-wide">Creá tu cuenta</h1>
         </div>
@@ -76,6 +80,29 @@ export default function PaginaRegistro() {
             type="tel"
             value={datos.telefono}
             onChange={(e) => actualizarCampo('telefono', e.target.value)}
+          />
+          <CampoTexto
+            etiqueta="Fecha de nacimiento (opcional)"
+            type="date"
+            value={datos.fechaNacimiento}
+            onChange={(e) => actualizarCampo('fechaNacimiento', e.target.value)}
+          />
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <CampoTexto
+              etiqueta="Ciudad (opcional)"
+              value={datos.ciudad}
+              onChange={(e) => actualizarCampo('ciudad', e.target.value)}
+            />
+            <CampoTexto
+              etiqueta="Provincia (opcional)"
+              value={datos.provincia}
+              onChange={(e) => actualizarCampo('provincia', e.target.value)}
+            />
+          </div>
+          <CampoTexto
+            etiqueta="Dirección (opcional)"
+            value={datos.direccion}
+            onChange={(e) => actualizarCampo('direccion', e.target.value)}
           />
           <CampoTexto
             etiqueta="Contraseña"

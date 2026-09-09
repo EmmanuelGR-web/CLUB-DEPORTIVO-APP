@@ -133,7 +133,7 @@ export function TarjetaCarnet({ carnet }: { carnet: Carnet }) {
         <div 
           className="absolute inset-0 z-0 opacity-80 blur-md" 
           style={{ 
-            backgroundImage: "url('/fondo.jpg')", 
+            backgroundImage: "url('/fondo.jpeg')",
             backgroundSize: 'cover', 
             backgroundPosition: 'center' 
           }}

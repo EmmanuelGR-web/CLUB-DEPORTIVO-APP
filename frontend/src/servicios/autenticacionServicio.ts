@@ -16,6 +16,10 @@ export const autenticacionServicio = {
     email: string;
     contrasena: string;
     telefono?: string;
+    fechaNacimiento?: string;
+    ciudad?: string;
+    provincia?: string;
+    direccion?: string;
   }) {
     return clienteApi<RespuestaLogin>('/autenticacion/registro', {
       method: 'POST',

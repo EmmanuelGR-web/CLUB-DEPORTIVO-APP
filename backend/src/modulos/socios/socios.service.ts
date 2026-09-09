@@ -77,6 +77,10 @@ export class SociosService {
     email: string;
     contrasenaHash: string;
     telefono?: string;
+    fechaNacimiento?: string;
+    ciudad?: string;
+    provincia?: string;
+    direccion?: string;
   }): Promise<Socio> {
     const socioExistente = await this.repositorioSocios.findOne({
       where: { email: datos.email },
@@ -97,6 +101,10 @@ export class SociosService {
       email: datos.email,
       contrasenaHash: datos.contrasenaHash,
       telefono: datos.telefono ?? null,
+      fechaNacimiento: datos.fechaNacimiento ? new Date(datos.fechaNacimiento) : null,
+      ciudad: datos.ciudad ?? null,
+      provincia: datos.provincia ?? null,
+      direccion: datos.direccion ?? null,
       fechaAlta: new Date(),
       categoria: categoriaInicial,
     });
