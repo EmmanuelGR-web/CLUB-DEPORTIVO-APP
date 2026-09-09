@@ -21,6 +21,7 @@ import { Rol } from '../../comun/enums/rol.enum';
 import { UsuarioActual, UsuarioAutenticado } from '../../comun/decoradores/usuario-actual.decorator';
 import { PagosService } from './pagos.service';
 import { CrearCuotaDto } from './dto/crear-cuota.dto';
+import { ActualizarCuotaDto } from './dto/actualizar-cuota.dto';
 import { RegistrarPagoDto } from './dto/registrar-pago.dto';
 import { ActualizarEstadoPagoDto } from './dto/actualizar-estado-pago.dto';
 
@@ -60,6 +61,19 @@ export class PagosController {
     return this.pagosService.obtenerEstadoDeCuenta(usuario.id);
   }
 
+  // Sin @Roles(): la deja abierta a cualquier usuario autenticado
+  // (socio o personal del club), porque la restricción real no es
+  // por rol sino por PROPIEDAD del pago. Esa comprobación fina
+  // (¿es el dueño? ¿es personal del club?) la hace el service.
+  @Get('pagos/:id/comprobante')
+  @ApiOperation({ summary: 'Obtiene el cupón/comprobante de un pago ya aprobado' })
+  async obtenerComprobante(
+    @Param('id') idPago: string,
+    @UsuarioActual() usuario: UsuarioAutenticado,
+  ) {
+    return this.pagosService.obtenerComprobante(idPago, usuario);
+  }
+
   // --- Endpoints exclusivos del personal del club ---
   // Nota: ADMINISTRATIVO puede operar el día a día (crear cuotas,
   // confirmar pagos individuales); el acceso a REPORTES agregados
@@ -74,6 +88,15 @@ export class PagosController {
     return this.pagosService.crearCuota(datos);
   }
 
+  @Patch('cuotas/:id')
+  @Roles(Rol.ADMINISTRATIVO, Rol.ADMIN_PRINCIPAL)
+  @ApiOperation({
+    summary: '[Personal del club] Corrige el monto o la fecha de vencimiento de una cuota',
+  })
+  async actualizarCuota(@Param('id') idCuota: string, @Body() datos: ActualizarCuotaDto) {
+    return this.pagosService.actualizarCuota(idCuota, datos);
+  }
+
   @Get('pagos/pendientes')
   @Roles(Rol.ADMINISTRATIVO, Rol.ADMIN_PRINCIPAL)
   @ApiOperation({ summary: '[Personal del club] Lista los pagos que esperan confirmación' })
@@ -81,10 +104,22 @@ export class PagosController {
     return this.pagosService.listarPagosPendientes();
   }
 
+  @Get('pagos/:id')
+  @Roles(Rol.ADMINISTRATIVO, Rol.ADMIN_PRINCIPAL)
+  @ApiOperation({
+    summary: '[Personal del club] Ve el detalle completo de un pago (medio de pago, comprobante, socio y cuota)',
+  })
+  async obtenerPago(@Param('id') idPago: string) {
+    return this.pagosService.obtenerPagoPorId(idPago);
+  }
+
   @Patch('pagos/:id/estado')
   @Roles(Rol.ADMINISTRATIVO, Rol.ADMIN_PRINCIPAL)
-  @ApiOperation({ summary: '[Personal del club] Confirma o rechaza un pago declarado' })
+  @ApiOperation({
+    summary:
+      '[Personal del club] Confirma, rechaza o corrige el estado de un pago declarado. Al aprobarlo se genera automáticamente el comprobante.',
+  })
   async actualizarEstadoPago(@Param('id') idPago: string, @Body() datos: ActualizarEstadoPagoDto) {
-    return this.pagosService.actualizarEstadoPago(idPago, datos.estado);
+    return this.pagosService.actualizarEstadoPago(idPago, datos.estado, datos.observacion);
   }
 }

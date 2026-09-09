@@ -82,6 +82,10 @@ export class AutenticacionService {
     email: string;
     contrasena: string;
     telefono?: string;
+    fechaNacimiento?: string;
+    ciudad?: string;
+    provincia?: string;
+    direccion?: string;
   }) {
     const contrasenaHash = await this.encriptarContrasena(datos.contrasena);
 
@@ -91,6 +95,10 @@ export class AutenticacionService {
       email: datos.email,
       contrasenaHash,
       telefono: datos.telefono,
+      fechaNacimiento: datos.fechaNacimiento,
+      ciudad: datos.ciudad,
+      provincia: datos.provincia,
+      direccion: datos.direccion,
     });
 
     // Reutilizamos iniciarSesion: así garantizamos que el token que se

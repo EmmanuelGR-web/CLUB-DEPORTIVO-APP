@@ -16,18 +16,18 @@ export function BarraLateral() {
   const { usuario, cerrarSesion } = useAuth();
 
   return (
-    <nav className="flex h-full w-56 flex-col justify-between border-r border-carbon/10 bg-white p-4 dark:border-white/10 dark:bg-carbon-suave">
+    <nav className="flex w-full shrink-0 flex-col justify-between border-b border-carbon/10 bg-white p-4 dark:border-white/10 dark:bg-carbon-suave md:min-h-screen md:w-60 md:border-b-0 md:border-r">
       <div>
         <div className="mb-8 flex items-center gap-2 px-2">
           <div>
-            <img src="/logo.png" alt="logo" className="flex h-9 w-9 items-center justify-center rounded-" />
+            <img src="/logo.png" alt="Logo del club" className="flex h-9 w-9 items-center justify-center rounded-lg object-contain" />
           </div>
           <span className="font-titulo text-sm font-semibold uppercase leading-tight">
-          Panel de socios
+            {usuario?.rol === 'socio' ? 'Panel de socios' : 'Panel administrativo'}
           </span>
         </div>
 
-        <ul className="flex flex-col gap-1">
+        <ul className="flex flex-wrap gap-1 md:flex-col">
           {ENLACES.map((enlace) => {
             const activo = rutaActual === enlace.href;
             return (
@@ -45,6 +45,20 @@ export function BarraLateral() {
               </li>
             );
           })}
+          {usuario && usuario.rol !== 'socio' && (
+            <li>
+              <Link
+                href="/admin"
+                className={`block rounded-lg px-3 py-2 font-cuerpo text-sm font-medium transition-colors ${
+                  rutaActual === '/admin'
+                    ? 'bg-rojo-club text-white'
+                    : 'text-carbon/70 hover:bg-carbon/5 dark:text-hueso/70 dark:hover:bg-white/5'
+                }`}
+              >
+                Administración
+              </Link>
+            </li>
+          )}
         </ul>
       </div>
 

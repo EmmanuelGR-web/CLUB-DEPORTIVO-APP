@@ -28,6 +28,10 @@ interface AuthContextoValor {
     email: string;
     contrasena: string;
     telefono?: string;
+    fechaNacimiento?: string;
+    ciudad?: string;
+    provincia?: string;
+    direccion?: string;
   }) => Promise<void>;
   cerrarSesion: () => void;
 }
@@ -68,6 +72,10 @@ export function AuthProveedor({ children }: { children: ReactNode }) {
     email: string;
     contrasena: string;
     telefono?: string;
+    fechaNacimiento?: string;
+    ciudad?: string;
+    provincia?: string;
+    direccion?: string;
   }) {
     const respuesta = await autenticacionServicio.registro(datos);
     guardarSesion(respuesta.tokenAcceso, respuesta.usuario);

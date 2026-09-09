@@ -1,11 +1,18 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { EstadoCuentaItem } from '@/tipos';
+import { Comprobante, EstadoCuentaItem } from '@/tipos';
 import { pagosServicio } from '@/servicios/pagosServicio';
 import { ErrorApi } from '@/servicios/clienteApi';
 import { Tarjeta } from '@/componentes/ui/Tarjeta';
 import { Boton } from '@/componentes/ui/Boton';
+
+const ETIQUETA_MEDIO_PAGO: Record<Comprobante['medioPago'], string> = {
+  efectivo: 'Efectivo',
+  transferencia: 'Transferencia',
+  debito: 'Débito',
+  credito: 'Crédito',
+};
 
 const ETIQUETA_ESTADO: Record<EstadoCuentaItem['estadoPago'], { texto: string; clase: string }> = {
   aprobado: {
@@ -43,6 +50,8 @@ export default function PaginaPagos() {
   const [error, setError] = useState('');
   const [mensaje, setMensaje] = useState('');
   const [pagandoCuotaId, setPagandoCuotaId] = useState<string | null>(null);
+  const [comprobanteAbierto, setComprobanteAbierto] = useState<Comprobante | null>(null);
+  const [cargandoComprobante, setCargandoComprobante] = useState(false);
 
   async function cargarEstadoCuenta() {
     try {
@@ -71,6 +80,19 @@ export default function PaginaPagos() {
       setError(err instanceof ErrorApi ? err.message : 'No se pudo registrar el pago');
     } finally {
       setPagandoCuotaId(null);
+    }
+  }
+
+  async function verComprobante(pagoId: string) {
+    setError('');
+    setCargandoComprobante(true);
+    try {
+      const datos = await pagosServicio.obtenerComprobante(pagoId);
+      setComprobanteAbierto(datos);
+    } catch (err) {
+      setError(err instanceof ErrorApi ? err.message : 'No se pudo obtener el comprobante');
+    } finally {
+      setCargandoComprobante(false);
     }
   }
 
@@ -108,7 +130,7 @@ export default function PaginaPagos() {
           const puedePagar = item.estadoPago === 'sin_pagar' || item.estadoPago === 'rechazado';
 
           return (
-            <Tarjeta key={item.cuotaId} className="flex items-center justify-between gap-4">
+            <Tarjeta key={item.cuotaId} className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
               <div>
                 <p className="font-titulo text-lg font-semibold">Cuota {item.periodo}</p>
                 <p className="font-cuerpo text-sm text-carbon/60 dark:text-hueso/60">
@@ -117,14 +139,25 @@ export default function PaginaPagos() {
                 </p>
               </div>
 
-              <div className="flex items-center gap-3">
+              <div className="flex w-full flex-wrap items-center justify-between gap-3 sm:w-auto sm:justify-end">
                 <span className={`rounded-full px-3 py-1 font-cuerpo text-xs font-medium ${estilo.clase}`}>
                   {estilo.texto}
                 </span>
 
+                {item.estadoPago === 'aprobado' && item.pagoId && (
+                  <Boton
+                    variante="fantasma"
+                    className="!px-3 !py-1.5 text-xs"
+                    disabled={cargandoComprobante}
+                    onClick={() => verComprobante(item.pagoId as string)}
+                  >
+                    Ver comprobante
+                  </Boton>
+                )}
+
                 {puedePagar && (
                   <select
-                    className="rounded-lg border border-carbon/15 bg-white px-2 py-1.5 font-cuerpo text-sm dark:border-white/15 dark:bg-carbon"
+                    className="rounded-lg border border-carbon/15 bg-white px-2 py-1.5 font-cuerpo text-sm text-carbon dark:border-white/15 dark:bg-carbon dark:text-hueso"
                     defaultValue=""
                     disabled={pagandoCuotaId === item.cuotaId}
                     onChange={(e) => {
@@ -146,6 +179,61 @@ export default function PaginaPagos() {
           );
         })}
       </div>
+
+      {comprobanteAbierto && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+          onClick={() => setComprobanteAbierto(null)}
+        >
+          <Tarjeta
+            className="w-full max-w-sm"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <p className="text-center font-titulo text-xs uppercase tracking-widest text-carbon/50 dark:text-hueso/50">
+              Comprobante de pago
+            </p>
+            <p className="mb-4 text-center font-titulo text-lg font-bold">
+              {comprobanteAbierto.numeroComprobante}
+            </p>
+
+            <dl className="flex flex-col gap-2 font-cuerpo text-sm">
+              <div className="flex justify-between">
+                <dt className="text-carbon/60 dark:text-hueso/60">Socio</dt>
+                <dd>{comprobanteAbierto.socio.nombreCompleto}</dd>
+              </div>
+              <div className="flex justify-between">
+                <dt className="text-carbon/60 dark:text-hueso/60">N° de socio</dt>
+                <dd>{comprobanteAbierto.socio.idSocio}</dd>
+              </div>
+              <div className="flex justify-between">
+                <dt className="text-carbon/60 dark:text-hueso/60">Cuota</dt>
+                <dd>{comprobanteAbierto.cuota.periodo}</dd>
+              </div>
+              <div className="flex justify-between">
+                <dt className="text-carbon/60 dark:text-hueso/60">Medio de pago</dt>
+                <dd>{ETIQUETA_MEDIO_PAGO[comprobanteAbierto.medioPago]}</dd>
+              </div>
+              <div className="flex justify-between">
+                <dt className="text-carbon/60 dark:text-hueso/60">Fecha</dt>
+                <dd>{new Date(comprobanteAbierto.fechaEmision).toLocaleDateString('es-AR')}</dd>
+              </div>
+              <div className="mt-2 flex justify-between border-t border-carbon/10 pt-2 font-semibold dark:border-white/10">
+                <dt>Monto</dt>
+                <dd>{formatearMonto(comprobanteAbierto.monto)}</dd>
+              </div>
+            </dl>
+
+            <div className="mt-6 flex gap-2">
+              <Boton variante="secundario" className="flex-1" onClick={() => window.print()}>
+                Imprimir
+              </Boton>
+              <Boton className="flex-1" onClick={() => setComprobanteAbierto(null)}>
+                Cerrar
+              </Boton>
+            </div>
+          </Tarjeta>
+        </div>
+      )}
     </div>
   );
 }
