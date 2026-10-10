@@ -55,7 +55,42 @@ function Facturacion({ perfiles, autor, onAbrirFicha }) {
 
       <Tarjeta titulo={`Cuotas de ${nombrePeriodo(periodo).toLowerCase()}`}>
         <p className="small text-body-secondary">Primero las vencidas. Los comprobantes que envían los socios se pueden abrir desde acá.</p>
-        <Table responsive hover className="align-middle mb-0">
+        <ul className="list-unstyled d-lg-none mb-0">
+          {cuotas.length === 0 && <li className="text-center text-body-secondary py-4">No hay cuotas en este período.</li>}
+          {cuotas.map(({ perfil, pago }) => (
+            <li key={perfil.id} className="border-bottom py-3">
+              <div className="d-flex justify-content-between align-items-start gap-2">
+                <div style={{ minWidth: 0 }}>
+                  <div className="fw-semibold">{perfil.nombreCompleto}</div>
+                  <div className="small text-body-secondary">
+                    <span className="font-numeros">N° {perfil.numeroSocio}</span> · {pago.medio}
+                  </div>
+                </div>
+                <div className="text-end flex-shrink-0">
+                  <div className="font-numeros fw-bold">{formatearPesos(pago.monto)}</div>
+                  <EstadoBadge estado={pago.estado} />
+                </div>
+              </div>
+              {pago.recargo > 0 && <div className="small text-primary">Incluye {formatearPesos(pago.recargo)} de recargo</div>}
+              <div className="d-flex flex-wrap align-items-center gap-2 mt-2">
+                <span className={`badge rounded-pill text-${categorias[perfil.categoria].texto}`} style={{ backgroundImage: categorias[perfil.categoria].degradado }}>
+                  {perfil.categoria}
+                </span>
+                {pago.comprobante && <Adjunto archivo={pago.comprobante} texto="Ver comprobante" className="small link-secondary" />}
+                {pago.informe?.verificacionIA?.leido && (
+                  <span className={`small ${pago.informe.verificacionIA.coincideMonto ? 'text-success' : 'text-danger'}`}>
+                    IA: {pago.informe.verificacionIA.coincideMonto ? 'monto coincide' : 'monto no coincide'}
+                  </span>
+                )}
+                <Button size="sm" variant="outline-secondary" className="rounded-pill px-3 ms-auto" onClick={() => onAbrirFicha(perfil.id)}>
+                  Ver ficha
+                </Button>
+              </div>
+            </li>
+          ))}
+        </ul>
+
+        <Table responsive hover className="align-middle mb-0 d-none d-lg-table">
           <thead>
             <tr className="text-uppercase small">
               <th scope="col">Socio</th>

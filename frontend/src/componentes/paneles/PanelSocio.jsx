@@ -8,7 +8,9 @@ import EstadoMembresia from '../socio/EstadoMembresia'
 import CarnetDigital from '../socio/CarnetDigital'
 import PagosFiltrables from '../socio/PagosFiltrables'
 import MedioPago from '../socio/MedioPago'
-import Beneficios from '../socio/Beneficios'
+import NoticiasSocio from '../socio/NoticiasSocio'
+import BeneficiosSocio from '../socio/BeneficiosSocio'
+import BarraInferior from '../comun/BarraInferior'
 import DatosPersonales from '../socio/DatosPersonales'
 import FotoPerfil from '../socio/FotoPerfil'
 import CambiarContrasena from '../socio/CambiarContrasena'
@@ -18,8 +20,7 @@ import Tarjeta from '../comun/Tarjeta'
 import { useDatosEnVivo } from '../../hooks/useDatosEnVivo'
 import { useTituloPagina } from '../../hooks/useTituloPagina'
 import { useSesion } from '../../contextos/SesionContexto'
-import { menuSocio } from '../../datos/menus'
-import { beneficios } from '../../datos/socio'
+import { barraInferiorSocio, menuSocio } from '../../datos/menus'
 import { descargarCredencial } from '../../utilidades/pdf'
 import { formatearPesos } from '../../utilidades/carnet'
 import { alertaError, alertaExito } from '../../utilidades/alertas'
@@ -33,18 +34,29 @@ import {
   obtenerPerfil,
   responderHilo,
 } from '../../servicios/cuentaApi'
+import { listarBeneficios, listarNoticias } from '../../servicios/adminApi'
 
-const titulos = { resumen: 'Mi resumen', datos: 'Datos personales', pagos: 'Facturas y pagos', bandeja: 'Bandeja de entrada' }
+const titulos = { resumen: 'Mi resumen', datos: 'Datos personales', pagos: 'Facturas y pagos', bandeja: 'Bandeja de entrada', noticias: 'Noticias', beneficios: 'Beneficios' }
 
 const leer = async () => {
-  const [socio, hilos, historial] = await Promise.all([obtenerPerfil(), obtenerHilos(), obtenerHistorial()])
-  return { socio, hilos, historial }
+  const [socio, hilos, historial, noticias, beneficios] = await Promise.all([
+    obtenerPerfil(),
+    obtenerHilos(),
+    obtenerHistorial(),
+    listarNoticias(),
+    listarBeneficios(),
+  ])
+  return { socio, hilos, historial, noticias, beneficios }
 }
 
 function ContenidoSocio({ datos, recargar, actualizado, cambiarDatos }) {
-  const { socio, hilos, historial } = datos
+  const { socio, hilos, historial, noticias, beneficios } = datos
   const { actualizarUsuario } = useSesion()
-  const [seccion, setSeccion] = useState('resumen')
+  const [seccion, setSeccionActual] = useState('resumen')
+  const setSeccion = (id) => {
+    setSeccionActual(id)
+    window.scrollTo({ top: 0 })
+  }
   const [descargando, setDescargando] = useState(false)
 
   const sinLeer = hilos.filter((h) => !h.leido).length
@@ -103,6 +115,7 @@ function ContenidoSocio({ datos, recargar, actualizado, cambiarDatos }) {
       onSeleccionar={setSeccion}
       onActualizar={recargar}
       actualizado={actualizado}
+      barraInferior={<BarraInferior items={barraInferiorSocio} activo={seccion} onSeleccionar={setSeccion} />}
     >
       {seccion === 'resumen' && (
         <>
@@ -141,12 +154,9 @@ function ContenidoSocio({ datos, recargar, actualizado, cambiarDatos }) {
             </Col>
           </Row>
 
-          <Tarjeta titulo="Mis movimientos" className="mb-4">
+          <Tarjeta titulo="Mis movimientos">
             <PagosFiltrables socio={socio} porPagina={6} />
           </Tarjeta>
-
-          <h2 className="h6 fw-bold text-uppercase text-center text-secondary mb-3">Beneficios exclusivos</h2>
-          <Beneficios beneficios={beneficios} />
         </>
       )}
 
@@ -169,6 +179,10 @@ function ContenidoSocio({ datos, recargar, actualizado, cambiarDatos }) {
           </Tarjeta>
         </>
       )}
+
+      {seccion === 'noticias' && <NoticiasSocio noticias={noticias} />}
+
+      {seccion === 'beneficios' && <BeneficiosSocio beneficios={beneficios} socio={socio} />}
 
       {seccion === 'bandeja' && <Bandeja socio={socio} hilos={hilos} onAbrir={abrirHilo} onResponder={responder} onCrear={crear} />}
     </PanelLayout>
