@@ -9,7 +9,7 @@ import { useSesion } from '../../contextos/SesionContexto'
 import { usuariosDemo } from '../../datos/usuarios'
 import RecuperarContrasena from './RecuperarContrasena'
 import UsuariosPrueba from './UsuariosPrueba'
-import { alertaBienvenida, alertaError } from '../../utilidades/alertas'
+import { alertaAviso, alertaBienvenida, alertaError } from '../../utilidades/alertas'
 
 function FormularioLogin() {
   const { iniciarSesion } = useSesion()
@@ -36,6 +36,10 @@ function FormularioLogin() {
     setIngresando(false)
     if (!usuario) {
       alertaError('Revisá el correo y la contraseña e intentá de nuevo.', 'Datos incorrectos')
+      return
+    }
+    if (usuario.bloqueado) {
+      alertaAviso(usuario.bloqueado, 'Tu acceso está pausado')
       return
     }
     if (usuario.errorConexion) {

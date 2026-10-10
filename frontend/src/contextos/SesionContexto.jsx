@@ -45,7 +45,8 @@ export function SesionProveedor({ children }) {
   }, [cerrarSesion, router])
 
   // Devuelve los datos del usuario, null si las credenciales no son
-  // correctas o { errorConexion } si el servidor no respondió.
+  // correctas, { bloqueado } si el personal está de licencia o
+  // { errorConexion } si el servidor no respondió.
   const iniciarSesion = async (email, contrasena, recordar) => {
     try {
       const { tokenAcceso, usuario: datos } = await iniciarSesionApi(email.trim().toLowerCase(), contrasena)
@@ -54,6 +55,7 @@ export function SesionProveedor({ children }) {
       setUsuario(datos)
       return datos
     } catch (problema) {
+      if (problema.estado === 403 && problema.datos?.bloqueo) return { bloqueado: problema.message }
       if (problema.estado === 401) return problema.message.includes('baja') ? { errorConexion: problema.message } : null
       return { errorConexion: problema.message }
     }
