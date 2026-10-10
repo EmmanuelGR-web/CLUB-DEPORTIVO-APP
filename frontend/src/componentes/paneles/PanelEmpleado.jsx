@@ -21,7 +21,8 @@ import DatosEmpleado from '../empleado/DatosEmpleado'
 import ControlJornada from '../empleado/ControlJornada'
 import GestionNoticias from '../admin/GestionNoticias'
 import GestionBeneficios from '../admin/GestionBeneficios'
-import { menuEmpleado } from '../../datos/menus'
+import { barraInferior, menuEmpleado } from '../../datos/menus'
+import BarraInferior from '../comun/BarraInferior'
 import { textoAusencia, textoRegreso } from '../../utilidades/personal'
 import { alertaAviso, alertaError } from '../../utilidades/alertas'
 import {
@@ -120,6 +121,7 @@ function ContenidoEmpleado({ datos, recargar, actualizado, cambiarDatos }) {
       alSalir={() => jornadaApi('salida').catch(() => {})}
       onSeleccionar={(id) => ir(id)}
       onVolver={puedeVolver ? volver : undefined}
+      barraInferior={<BarraInferior items={barraInferior} activo={seccion} onSeleccionar={(id) => ir(id)} />}
     >
       {seccion === 'resumen' && <ResumenGestion {...datos} onIr={ir} onRevisar={revisar} />}
       {seccion === 'solicitudes' && <Solicitudes solicitudes={datos.solicitudes} onRevisar={revisar} />}

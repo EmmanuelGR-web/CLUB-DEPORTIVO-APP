@@ -19,34 +19,35 @@ export const menuSocio = [
   { id: 'beneficios', etiqueta: 'Beneficios', icono: FaGift, soloEscritorio: true },
 ]
 
-// Barra fija de abajo en el celular: el resumen va en el medio.
-export const barraInferiorSocio = [
+// Barra fija de abajo en el celular, igual en los tres paneles: el
+// resumen va en el medio.
+export const barraInferior = [
   { id: 'noticias', etiqueta: 'Noticias', icono: FaNewspaper },
   { id: 'resumen', etiqueta: 'Resumen', icono: FaThLarge, central: true },
   { id: 'beneficios', etiqueta: 'Beneficios', icono: FaGift },
 ]
 
 export const menuEmpleado = [
-  { id: 'resumen', etiqueta: 'Resumen de gestión', icono: FaThLarge },
+  { id: 'resumen', etiqueta: 'Resumen de gestión', icono: FaThLarge, soloEscritorio: true },
   { id: 'solicitudes', etiqueta: 'Solicitudes', icono: FaClipboardCheck },
   { id: 'socios', etiqueta: 'Socios', icono: FaUsers },
   { id: 'mensajes', etiqueta: 'Mensajes de socios', icono: FaInbox },
   { id: 'cambios', etiqueta: 'Registro de cambios', icono: FaHistory },
   { id: 'interno', etiqueta: 'Administración principal', icono: FaComments },
   { id: 'nuevo', etiqueta: 'Nuevo socio', icono: FaUserPlus },
-  { id: 'noticias', etiqueta: 'Noticias', icono: FaNewspaper },
-  { id: 'beneficios', etiqueta: 'Beneficios', icono: FaGift },
+  { id: 'noticias', etiqueta: 'Noticias', icono: FaNewspaper, soloEscritorio: true },
+  { id: 'beneficios', etiqueta: 'Beneficios', icono: FaGift, soloEscritorio: true },
   { id: 'datos', etiqueta: 'Mis datos', icono: FaIdBadge },
 ]
 
 export const menuAdmin = [
-  { id: 'resumen', etiqueta: 'Resumen', icono: FaThLarge },
+  { id: 'resumen', etiqueta: 'Resumen', icono: FaThLarge, soloEscritorio: true },
   { id: 'personal', etiqueta: 'Personal', icono: FaUserTie },
   { id: 'presencia', etiqueta: 'Control del personal', icono: FaUserClock },
   { id: 'socios', etiqueta: 'Socios', icono: FaUsers },
   { id: 'facturacion', etiqueta: 'Facturación', icono: FaFileInvoiceDollar },
-  { id: 'noticias', etiqueta: 'Noticias', icono: FaNewspaper },
-  { id: 'beneficios', etiqueta: 'Beneficios', icono: FaGift },
+  { id: 'noticias', etiqueta: 'Noticias', icono: FaNewspaper, soloEscritorio: true },
+  { id: 'beneficios', etiqueta: 'Beneficios', icono: FaGift, soloEscritorio: true },
   { id: 'reportes', etiqueta: 'Reportes', icono: FaChartBar },
   { id: 'interno', etiqueta: 'Mensajes del personal', icono: FaComments },
 ]
