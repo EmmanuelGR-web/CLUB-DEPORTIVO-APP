@@ -69,10 +69,6 @@ function ControlPersonal({ personal, jornadas }) {
       </Row>
 
       <Tarjeta titulo={`Jornada de hoy · ${new Date(ahora).toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long' })}`}>
-        <p className="small text-body-secondary">
-          Se actualiza sola cada pocos segundos. El descanso permitido es de {textoDuracion(descansoPermitido)} por jornada. No figura quien está de vacaciones, con licencia o suspendido.
-        </p>
-
         <ul className="list-unstyled d-lg-none mb-0">
           {visibles.map(({ empleado: e, presencia: p }) => (
             <li key={e.id} className="border-bottom py-3">
@@ -147,10 +143,6 @@ function ControlPersonal({ personal, jornadas }) {
           </section>
         )}
 
-        <p className="small text-body-secondary border-top pt-3 mt-3 mb-0">
-          Quien tiene usuario del portal (en los datos de prueba, Pedro Díaz) muestra su jornada real: cambia en vivo cuando entra, toma un descanso o cierra sesión. La del
-          resto del personal se estima según su horario.
-        </p>
       </Tarjeta>
     </>
   )

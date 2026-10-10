@@ -21,7 +21,7 @@ function MensajesSocios({ conversaciones, onResponder }) {
   return (
     <>
       <div className="bg-body rounded-4 shadow-sm p-3 mb-3 small">
-        Respondés como <strong>{correoAdministracion}</strong>. Cada respuesta le llega al socio a su bandeja de entrada.
+        Respondés como <strong>{correoAdministracion}</strong>
       </div>
 
       <Row className="g-3">

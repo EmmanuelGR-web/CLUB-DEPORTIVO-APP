@@ -54,7 +54,6 @@ function Facturacion({ perfiles, autor, onAbrirFicha }) {
       </Row>
 
       <Tarjeta titulo={`Cuotas de ${nombrePeriodo(periodo).toLowerCase()}`}>
-        <p className="small text-body-secondary">Primero las vencidas. Los comprobantes que envían los socios se pueden abrir desde acá.</p>
         <ul className="list-unstyled d-lg-none mb-0">
           {cuotas.length === 0 && <li className="text-center text-body-secondary py-4">No hay cuotas en este período.</li>}
           {cuotas.map(({ perfil, pago }) => (

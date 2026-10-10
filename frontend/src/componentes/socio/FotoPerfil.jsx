@@ -51,7 +51,7 @@ function FotoPerfil({ socio, onGuardar, sinLimite = false }) {
             </p>
           )}
           <p className="small text-body-secondary mb-0">
-            Por seguridad, la foto del carnet se puede cambiar una vez cada {mesesEntreCambiosDeFoto} meses. Cada cambio queda registrado.
+            La foto del carnet se puede cambiar una vez cada {mesesEntreCambiosDeFoto} meses.
           </p>
         </div>
       </div>

@@ -9,13 +9,14 @@ export const enlacesInicio = [
   { etiqueta: 'Contacto', href: '#contacto' },
 ]
 
+// soloEscritorio: en el celular estas secciones están en la barra de abajo.
 export const menuSocio = [
-  { id: 'resumen', etiqueta: 'Resumen', icono: FaThLarge },
+  { id: 'resumen', etiqueta: 'Resumen', icono: FaThLarge, soloEscritorio: true },
   { id: 'datos', etiqueta: 'Datos personales', icono: FaUser },
   { id: 'pagos', etiqueta: 'Facturas y pagos', icono: FaFileInvoiceDollar },
   { id: 'bandeja', etiqueta: 'Bandeja de entrada', icono: FaInbox },
-  { id: 'noticias', etiqueta: 'Noticias', icono: FaNewspaper },
-  { id: 'beneficios', etiqueta: 'Beneficios', icono: FaGift },
+  { id: 'noticias', etiqueta: 'Noticias', icono: FaNewspaper, soloEscritorio: true },
+  { id: 'beneficios', etiqueta: 'Beneficios', icono: FaGift, soloEscritorio: true },
 ]
 
 // Barra fija de abajo en el celular: el resumen va en el medio.

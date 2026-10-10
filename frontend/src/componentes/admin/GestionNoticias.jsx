@@ -106,8 +106,6 @@ function GestionNoticias() {
 
   return (
     <Tarjeta titulo="Noticias del club">
-      <p className="small text-body-secondary">Lo que se publica acá lo ven todos los socios en la sección Noticias de su panel.</p>
-
       <EstadoConsulta cargando={cargando} error={error} vacio={noticias?.length === 0} onReintentar={recargar} textoVacio="Todavía no hay noticias." />
 
       {noticias?.length > 0 && (

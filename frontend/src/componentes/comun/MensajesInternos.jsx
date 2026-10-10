@@ -53,7 +53,7 @@ function MensajesInternos({ rol, hilos, personal = [], onAbrir, onResponder, onC
         {esAdmin ? (
           <>
             <span>
-              Escribís desde <strong>{correoDireccion}</strong>. Al redactar elegís a qué persona del personal le llega.
+              Escribís desde <strong>{correoDireccion}</strong>
             </span>
             <Form.Select size="sm" className="w-auto ms-md-auto" value={conQuien} onChange={(e) => setConQuien(e.target.value)} aria-label="Ver conversaciones con">
               <option value="">Conversaciones con todo el personal</option>
