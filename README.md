@@ -23,7 +23,6 @@ El portal reproduce el sistema que armé en el [proyecto C-DEPORTIVO](https://gi
 - [x] **Fase 3** — Módulo de pagos y cuotas con aprobación administrativa y comprobantes
 - [ ] Fase 4 — Información del club (fixture, plantel, historia, museo, complejo)
 - [x] **Fase 5** — Frontend con React Bootstrap: portal del socio, panel del personal y panel del administrador principal
-- [ ] Fase 6 — Chatbot asistente, documentación final
 
 ## Funcionalidades
 
