@@ -34,7 +34,10 @@ El portal reproduce el sistema que armé en el [proyecto C-DEPORTIVO](https://gi
 
 ### Panel del socio
 
-- **Resumen:** estado de la membresía y categoría automática según la antigüedad (Bronce hasta 2 años, Plata hasta 10, Oro más de 10); **carnet digital** con foto en forma de escudo, QR y código de barras, que se inclina en 3D con el mouse y se descarga en **PDF** para imprimir; movimientos y beneficios exclusivos en una cinta que gira sola.
+- **Resumen:** estado de la membresía y categoría automática según la antigüedad (Bronce hasta 2 años, Plata hasta 10, Oro más de 10); **carnet digital** con foto en forma de escudo, QR y código de barras, que se inclina en 3D con el mouse y se descarga en **PDF** para imprimir; y los últimos movimientos.
+- **Noticias:** las que publica el club, con la más nueva destacada, filtro por categoría y el texto completo al tocarla.
+- **Beneficios:** todos los beneficios vigentes en tarjetas; al tocar uno se abren sus condiciones.
+- **Barra inferior fija** en el celular y la tablet, como en las apps: Noticias, **Resumen** (en el medio, destacado) y Beneficios.
 - **Datos personales:** foto de perfil desde la cámara o un archivo (se puede cambiar una vez cada 6 meses); los datos de contacto se actualizan al instante y los de documento (nombre, apellido, DNI, nacimiento) quedan **pendientes hasta que el personal los aprueba**. Cada cambio queda en el historial de la cuenta. Cambio de contraseña verificando la actual.
 - **Facturas y pagos:** la cuota se genera sola cada mes desde el alta, vence el **día 15** y después suma un **recargo del 0,1 % por día**. El socio **informa el pago** con el comprobante (imagen o PDF): la **IA lee el monto, la fecha, el medio y el número de operación** y avisa si el monto coincide con la cuota. Historial con filtros por año, estado, medio y concepto, orden por columna, paginación y descarga del **estado de cuenta en PDF**. Cambio de medio de pago, con o sin **débito automático** (las cuotas se cobran solas).
 - **Bandeja de entrada:** correo institucional del socio, conversaciones con administración, respuestas y **archivos adjuntos** (imágenes que se optimizan solas o PDF).
@@ -50,6 +53,7 @@ El portal reproduce el sistema que armé en el [proyecto C-DEPORTIVO](https://gi
 - **Registro de cambios:** constancia de cada cambio en las cuentas, agrupada por día, con filtros por tipo, por quién lo hizo (socio o personal), por fechas y búsqueda.
 - **Administración principal:** canal interno con la dirección del club.
 - **Nuevo socio:** alta presencial en la sede con foto opcional y tarjeta o efectivo; el socio queda activo con su DNI como contraseña inicial.
+- **Noticias y beneficios:** publicar, editar y borrar lo que ven los socios en esas secciones.
 - **Mis datos:** código de empleado, puesto, sector, horario y antigüedad.
 - Si la dirección le carga **vacaciones, licencia o suspensión**, la persona no puede ingresar mientras dure, y si estaba conectada se le cierra la sesión.
 
@@ -60,15 +64,15 @@ El portal reproduce el sistema que armé en el [proyecto C-DEPORTIVO](https://gi
 - **Control del personal:** jornada de hoy en vivo, con quién está en línea, en descanso, con el **descanso excedido** o fuera del portal, hora de ingreso, tiempo trabajado y última actividad, y la lista de ausentes con su fecha de regreso.
 - **Socios:** el padrón y la ficha de cada socio, con la opción de **darlo de baja** (deja de figurar en el padrón y en la facturación; sus pagos quedan como historial).
 - **Facturación:** cuotas del período elegido (primero las vencidas), con el comprobante y lo que leyó la IA, y el **resumen económico**: ingresos, cuotas impagas, comprobantes en revisión, cobranza, padrón, cobros por medio de pago, cuotas por categoría, socios morosos y evolución de los últimos seis meses. Se descarga en **PDF** para contaduría.
-- **Noticias:** alta, edición y borrado de las noticias del club, con imagen por link o subida desde el dispositivo (se optimiza sola).
+- **Noticias y beneficios:** alta, edición y borrado, igual que el personal. Las noticias aceptan imagen por link o subida desde el dispositivo (se optimiza sola).
 - **Reportes:** el registro completo de cambios con sus filtros.
 - **Mensajes del personal:** canal interno con cada persona del personal o con todos a la vez.
 
 ### En todo el portal
 
-- **Modo claro y oscuro** con el modo nativo de Bootstrap 5.3 (`data-bs-theme`), que se recuerda entre visitas.
+- **Modo claro y oscuro** con el modo nativo de Bootstrap 5.3 (`data-bs-theme`), desde un interruptor en la barra lateral (o el menú desplegable en el celular); se recuerda entre visitas.
 - **SweetAlert2** para errores, confirmaciones y avisos, con botones de Bootstrap y los colores del club.
-- **Diseño responsive** para celular, tablet y computadora: el menú lateral pasa a ser un panel desplegable y las tablas se muestran como listas en pantallas chicas.
+- **Diseño responsive** para celular, tablet y computadora: el menú lateral pasa a ser un panel desplegable, debajo de 992 px las tablas (padrón, facturación, personal, control del personal, noticias y beneficios) se muestran como listas, el título del panel se adapta al ancho y los formularios grandes ocupan toda la pantalla en el celular.
 
 ### Usuarios de prueba
 
@@ -114,6 +118,7 @@ npm install
 cp .env.example .env   # completar con los datos de Supabase
 npm run migrar -- migraciones/003_portal_del_socio.sql   # solo si la base viene de una versión anterior
 npm run migrar -- migraciones/004_personal_jornadas_noticias.sql   # personal, jornadas y noticias
+npm run migrar -- migraciones/005_beneficios.sql
 npm run sembrar        # opcional: carga los usuarios y socios de prueba
 npm run start:dev
 ```
@@ -149,7 +154,7 @@ Los mensajes de commit siguen la [guía de commits](docs/guia-commits.md).
 
 ## Despliegue
 
-- **Base de datos:** PostgreSQL de Supabase (plan gratuito). Las tablas se crean corriendo en orden los scripts de `backend/migraciones/` (`001` a `004`), desde el *SQL Editor* de Supabase o con `npm run migrar -- <archivo>`, que aplica cada script en una transacción. Los usuarios de prueba se cargan con `npm run sembrar` desde `backend/`; se puede repetir sin duplicar nada.
+- **Base de datos:** PostgreSQL de Supabase (plan gratuito). Las tablas se crean corriendo en orden los scripts de `backend/migraciones/` (`001` a `005`), desde el *SQL Editor* de Supabase o con `npm run migrar -- <archivo>`, que aplica cada script en una transacción. Los usuarios de prueba se cargan con `npm run sembrar` desde `backend/`; se puede repetir sin duplicar nada.
 - **Backend:** servicio web en Render, con raíz en `backend/`, comando de build `npm install && npm run build` y de inicio `npm run start:prod`. Las variables del backend se cargan en *Environment*.
 - **Frontend:** proyecto de Vercel con raíz en `frontend/` y la variable `NEXT_PUBLIC_API_URL` apuntando a la URL de Render.
 - En Render, `CORS_ORIGENES` tiene la URL de Vercel para que solo el sitio publicado pueda usar la API.
@@ -178,6 +183,7 @@ club-deportivo/
 │           ├── personal/       → nómina del club, ausencias y jornadas
 │           ├── admin/          → panel de la administración principal y ABM del personal
 │           ├── noticias/       → noticias del club
+│           ├── beneficios/     → beneficios para socios
 │           └── socios/         → acceso a la tabla de socios
 ├── frontend/                 → Aplicación web (Next.js)
 │   ├── public/                → escudo y fotos del club

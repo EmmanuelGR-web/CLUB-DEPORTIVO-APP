@@ -18,6 +18,8 @@ import RegistroCambios from '../empleado/RegistroCambios'
 import NuevoSocio from '../empleado/NuevoSocio'
 import DatosEmpleado from '../empleado/DatosEmpleado'
 import ControlJornada from '../empleado/ControlJornada'
+import GestionNoticias from '../admin/GestionNoticias'
+import GestionBeneficios from '../admin/GestionBeneficios'
 import { menuEmpleado } from '../../datos/menus'
 import { textoAusencia, textoRegreso } from '../../utilidades/personal'
 import { alertaAviso, alertaError } from '../../utilidades/alertas'
@@ -39,6 +41,8 @@ const titulos = {
   cambios: 'Registro de cambios',
   interno: 'Administración principal',
   nuevo: 'Nuevo socio',
+  noticias: 'Noticias',
+  beneficios: 'Beneficios',
   datos: 'Mis datos',
 }
 
@@ -133,6 +137,8 @@ function ContenidoEmpleado({ datos, recargar, actualizado, cambiarDatos }) {
         <MensajesInternos rol="empleado" hilos={datos.hilosInternos} onAbrir={abrirInterno} onResponder={responderInterno} onCrear={crearInterno} />
       )}
       {seccion === 'nuevo' && <NuevoSocio onCreado={recargar} />}
+      {seccion === 'noticias' && <GestionNoticias />}
+      {seccion === 'beneficios' && <GestionBeneficios />}
       {seccion === 'datos' && <DatosEmpleado empleado={empleado} />}
 
       <DetalleSolicitud solicitud={revisando} mostrar={mostrarDetalle} onCerrar={() => setMostrarDetalle(false)} onResolver={resolver} />

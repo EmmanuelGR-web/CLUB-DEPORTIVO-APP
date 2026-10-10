@@ -23,7 +23,34 @@ function ListaSocios({ perfiles, onAbrir }) {
         onChange={(e) => setBusqueda(e.target.value)}
         aria-label="Buscar socios"
       />
-      <Table responsive hover className="align-middle mb-0">
+      <ul className="list-unstyled d-lg-none mb-0">
+        {filtrados.length === 0 && <li className="text-center text-body-secondary py-4">No hay socios que coincidan con la búsqueda.</li>}
+        {filtrados.map((p) => (
+          <li key={p.id} className="border-bottom py-3 d-flex align-items-center gap-3">
+            <div className="flex-grow-1" style={{ minWidth: 0 }}>
+              <div className="fw-semibold">{p.nombreCompleto}</div>
+              <div className="small text-body-secondary text-truncate">
+                N° <span className="font-numeros">{p.numeroSocio}</span> · DNI {p.dni || '—'}
+              </div>
+              <div className="d-flex flex-wrap align-items-center gap-2 mt-1 small">
+                <span className={`badge rounded-pill text-${categorias[p.categoria].texto}`} style={{ backgroundImage: categorias[p.categoria].degradado }}>
+                  {p.categoria}
+                </span>
+                <EstadoBadge estado={p.estado} />
+                <span className="text-body-secondary">
+                  {textoMedio(p.medioPago)}
+                  {p.medioPago.debitoAutomatico && ' · débito'}
+                </span>
+              </div>
+            </div>
+            <Button size="sm" variant="secondary" className="rounded-pill px-3 text-nowrap flex-shrink-0" onClick={() => onAbrir(p.id)}>
+              Ver ficha
+            </Button>
+          </li>
+        ))}
+      </ul>
+
+      <Table responsive hover className="align-middle mb-0 d-none d-lg-table">
         <thead>
           <tr className="text-uppercase small">
             <th scope="col">Socio</th>

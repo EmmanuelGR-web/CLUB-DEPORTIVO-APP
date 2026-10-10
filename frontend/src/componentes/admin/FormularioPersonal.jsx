@@ -95,7 +95,7 @@ function FormularioPersonal({ empleado, onCerrar, onGuardar }) {
   )
 
   return (
-    <Modal show onHide={onCerrar} centered size="lg" scrollable contentClassName="border-0 rounded-4 overflow-hidden shadow-lg">
+    <Modal show onHide={onCerrar} centered size="lg" fullscreen="sm-down" scrollable contentClassName="border-0 rounded-4 overflow-hidden shadow-lg">
       <Form noValidate onSubmit={enviar} className="d-flex flex-column overflow-hidden">
         <EncabezadoLegajo nombre={datos.nombre} antetitulo={empleado ? `Editar legajo ${empleado.codigo}` : 'Alta de personal'} onCerrar={onCerrar}>
           <div className="small text-white-50">
