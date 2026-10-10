@@ -74,7 +74,9 @@ function BarraLateral({ usuario, detalle, items, activo, onSeleccionar, variante
       className={`${variantes[variante].clase} text-white ${esEscritorio ? '' : 'rounded-bottom-4 shadow'}`}
       style={{ width: 270, bottom: esEscritorio ? undefined : 'auto' }}
     >
-      <Offcanvas.Body className={`position-relative d-flex flex-column p-0 ${variantes[variante].clase} text-white w-100 ${esEscritorio ? 'min-vh-100' : 'rounded-bottom-4'}`} style={variantes[variante].estilo}>
+      <Offcanvas.Body className={`position-relative d-flex flex-column p-0 ${variantes[variante].clase} text-white w-100 ${esEscritorio ? 'min-vh-100' : 'rounded-bottom-4'}`}
+        style={esEscritorio ? variantes[variante].estilo : { ...variantes[variante].estilo, maxHeight: '100dvh', overflowY: 'auto', overscrollBehavior: 'contain' }}
+      >
         {!esEscritorio && (
           <div className="d-flex align-items-center gap-2 px-4 pt-3">
             {/* La imagen del escudo trae margen transparente: se amplía dentro de un recuadro fijo. */}

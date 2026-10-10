@@ -16,7 +16,8 @@ import ListaSocios from '../empleado/ListaSocios'
 import FichaSocio from '../empleado/FichaSocio'
 import RegistroCambios from '../empleado/RegistroCambios'
 import MensajesInternos from '../comun/MensajesInternos'
-import { menuAdmin } from '../../datos/menus'
+import { barraInferior, menuAdmin } from '../../datos/menus'
+import BarraInferior from '../comun/BarraInferior'
 import { ausenciaVigente, fechaDeHoy } from '../../utilidades/personal'
 import { presenciaDe } from '../../utilidades/jornada'
 import { obtenerPanelAdmin } from '../../servicios/adminApi'
@@ -84,6 +85,7 @@ function ContenidoAdmin({ datos, recargar, actualizado, cambiarDatos }) {
       actualizado={actualizado}
       onSeleccionar={(id) => ir(id)}
       onVolver={puedeVolver ? volver : undefined}
+      barraInferior={<BarraInferior items={barraInferior} activo={seccion} onSeleccionar={(id) => ir(id)} />}
     >
       {seccion === 'resumen' && <ResumenAdmin {...datos} onIr={ir} />}
       {seccion === 'presencia' && <ControlPersonal personal={datos.personal} jornadas={datos.jornadas} />}
