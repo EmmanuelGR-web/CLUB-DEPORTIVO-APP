@@ -22,7 +22,7 @@ El portal reproduce el sistema que armé en el [proyecto C-DEPORTIVO](https://gi
 - [x] **Fase 2** — Módulo de socios (carnet, código de barras, antigüedad y categoría)
 - [x] **Fase 3** — Módulo de pagos y cuotas con aprobación administrativa y comprobantes
 - [ ] Fase 4 — Información del club (fixture, plantel, historia, museo, complejo)
-- [ ] **Fase 5** — Frontend con React Bootstrap: portal del socio ✔ · panel del personal ✔ · panel del administrador principal
+- [x] **Fase 5** — Frontend con React Bootstrap: portal del socio, panel del personal y panel del administrador principal
 - [ ] Fase 6 — Chatbot asistente, documentación final
 
 ## Funcionalidades
@@ -52,6 +52,17 @@ El portal reproduce el sistema que armé en el [proyecto C-DEPORTIVO](https://gi
 - **Nuevo socio:** alta presencial en la sede con foto opcional y tarjeta o efectivo; el socio queda activo con su DNI como contraseña inicial.
 - **Mis datos:** código de empleado, puesto, sector, horario y antigüedad.
 - Si la dirección le carga **vacaciones, licencia o suspensión**, la persona no puede ingresar mientras dure, y si estaba conectada se le cierra la sesión.
+
+### Panel del administrador principal
+
+- **Resumen:** lo cobrado en el mes y el porcentaje de cobranza, socios morosos con lo que falta cobrar, socios activos y cuántas personas del personal están conectadas. Trabajo del personal (solicitudes pendientes y resueltas, mensajes sin leer) y últimos cambios en las cuentas.
+- **Personal:** nómina con búsqueda y filtros por rol y por situación del día. Alta (el legajo A01, A02… se asigna solo), edición del legajo con rol, días y horario, y **ausencias** (vacaciones, licencia médica o personal, suspensión) con fechas: durante esas fechas la persona no puede entrar al portal y después vuelve sola a estar en actividad. Acciones en grupo para cambiar el rol o cargar una ausencia a varios a la vez, y eliminación (no a quien tiene usuario del portal).
+- **Control del personal:** jornada de hoy en vivo, con quién está en línea, en descanso, con el **descanso excedido** o fuera del portal, hora de ingreso, tiempo trabajado y última actividad, y la lista de ausentes con su fecha de regreso.
+- **Socios:** el padrón y la ficha de cada socio, con la opción de **darlo de baja** (deja de figurar en el padrón y en la facturación; sus pagos quedan como historial).
+- **Facturación:** cuotas del período elegido (primero las vencidas), con el comprobante y lo que leyó la IA, y el **resumen económico**: ingresos, cuotas impagas, comprobantes en revisión, cobranza, padrón, cobros por medio de pago, cuotas por categoría, socios morosos y evolución de los últimos seis meses. Se descarga en **PDF** para contaduría.
+- **Noticias:** alta, edición y borrado de las noticias del club, con imagen por link o subida desde el dispositivo (se optimiza sola).
+- **Reportes:** el registro completo de cambios con sus filtros.
+- **Mensajes del personal:** canal interno con cada persona del personal o con todos a la vez.
 
 ### En todo el portal
 
@@ -102,7 +113,7 @@ cd backend
 npm install
 cp .env.example .env   # completar con los datos de Supabase
 npm run migrar -- migraciones/003_portal_del_socio.sql   # solo si la base viene de una versión anterior
-npm run migrar -- migraciones/004_personal_jornadas_noticias.sql
+npm run migrar -- migraciones/004_personal_jornadas_noticias.sql   # personal, jornadas y noticias
 npm run sembrar        # opcional: carga los usuarios y socios de prueba
 npm run start:dev
 ```
@@ -165,6 +176,8 @@ club-deportivo/
 │           ├── ia/             → lectura de DNI y comprobantes con Gemini
 │           ├── gestion/        → panel del personal: solicitudes, padrón, mensajes, altas
 │           ├── personal/       → nómina del club, ausencias y jornadas
+│           ├── admin/          → panel de la administración principal y ABM del personal
+│           ├── noticias/       → noticias del club
 │           └── socios/         → acceso a la tabla de socios
 ├── frontend/                 → Aplicación web (Next.js)
 │   ├── public/                → escudo y fotos del club
@@ -174,6 +187,7 @@ club-deportivo/
 │       │   ├── auth/           → ingreso, registro, cámara, tarjeta
 │       │   ├── comun/          → tarjetas, estados, adjuntos, modo oscuro, canal interno
 │       │   ├── empleado/       → solicitudes, ficha del socio, jornada, registro de cambios
+│       │   ├── admin/          → personal, control en vivo, facturación, resumen económico, noticias
 │       │   ├── layout/         → barra lateral y estructura de los paneles
 │       │   ├── paneles/        → panel de cada rol
 │       │   └── socio/          → carnet, pagos, datos personales, bandeja
@@ -202,7 +216,8 @@ club-deportivo/
 - **Componentes reutilizables:** en el frontend, el carnet, la tabla de pagos, los formularios de datos y los avisos son componentes que reciben todo por props y se reutilizan entre el panel del socio y el del personal.
 - **El servidor decide:** el monto de cada cuota, los recargos y qué cambios necesitan aprobación se calculan en el backend; el navegador solo los muestra. Así nadie puede pagar menos editando la página.
 - **Seguridad de datos económicos**: solo el rol `admin_principal` puede
-  acceder a información financiera del club, controlado por `RolesGuard`.
+  acceder a la facturación, al resumen económico y a la gestión del personal
+  (rutas `/admin`, controladas por `RolesGuard`).
 - **Escalabilidad**: índices en las columnas de búsqueda frecuente,
   tipo `NUMERIC` para montos de dinero (nunca `float`), y migraciones
   SQL versionadas pensando en 20.000+ socios.
