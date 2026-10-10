@@ -82,17 +82,17 @@ export class MiCuentaService {
   }
 
   async nuevoHilo(socioId: string, mensaje: MensajeNuevo) {
-    const hilo = await this.mensajes.crearHilo(socioId, 'socio', await this.remitente(socioId), mensaje);
+    const hilo = await this.mensajes.crearHilo({ socioId }, 'socio', await this.remitente(socioId), mensaje);
     return { id: hilo.id, hilos: await this.hilos(socioId) };
   }
 
   async responder(socioId: string, hiloId: string, mensaje: MensajeNuevo) {
-    const hilo = await this.mensajes.buscarHilo(hiloId, socioId);
+    const hilo = await this.mensajes.buscarHilo(hiloId, { socioId, tipo: 'socio' });
     await this.mensajes.responder(hilo, await this.remitente(socioId), mensaje);
     return this.hilos(socioId);
   }
 
   async marcarLeido(socioId: string, hiloId: string) {
-    await this.mensajes.marcarLeido(await this.mensajes.buscarHilo(hiloId, socioId), 'socio');
+    await this.mensajes.marcarLeido(await this.mensajes.buscarHilo(hiloId, { socioId, tipo: 'socio' }), 'socio');
   }
 }

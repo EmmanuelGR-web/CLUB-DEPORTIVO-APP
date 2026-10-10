@@ -60,6 +60,10 @@ export class SociosService {
     return socio;
   }
 
+  listar() {
+    return this.repositorioSocios.find();
+  }
+
   async buscarPorId(id: string): Promise<Socio> {
     const socio = await this.repositorioSocios.findOne({ where: { id } });
     if (!socio) throw new NotFoundException('No encontramos la cuenta.');
