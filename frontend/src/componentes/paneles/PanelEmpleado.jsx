@@ -112,7 +112,6 @@ function ContenidoEmpleado({ datos, recargar, actualizado, cambiarDatos }) {
       activo={seccion}
       onActualizar={recargar}
       actualizado={actualizado}
-      variante="bordo"
       extra={<ControlJornada />}
       alSalir={() => jornadaApi('salida').catch(() => {})}
       onSeleccionar={(id) => {
