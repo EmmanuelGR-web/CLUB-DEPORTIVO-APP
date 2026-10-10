@@ -1,6 +1,6 @@
-import { ForbiddenException, Injectable } from '@nestjs/common';
+import { BadRequestException, ConflictException, ForbiddenException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { In, Not, Repository } from 'typeorm';
 import { Ausencia, Personal } from './personal.entity';
 import { fechaLocal } from './jornadas.service';
 import { Rol } from '../../comun/enums/rol.enum';
@@ -35,6 +35,43 @@ export class PersonalService {
 
   listar() {
     return this.repositorio.find({ order: { codigo: 'ASC' } });
+  }
+
+  // Legajo nuevo: el que sigue al más alto (A06 después de A05).
+  private async siguienteCodigo() {
+    const codigos = (await this.repositorio.find({ select: { codigo: true } })).map((p) => Number(p.codigo.slice(1)) || 0);
+    return `A${String(Math.max(0, ...codigos) + 1).padStart(2, '0')}`;
+  }
+
+  private async revisarCorreo(correo: string, excluirId?: string) {
+    const repetido = await this.repositorio.exists({ where: { correo: correo.trim().toLowerCase(), ...(excluirId ? { id: Not(excluirId) } : {}) } });
+    if (repetido) throw new ConflictException({ message: 'Ese correo ya lo usa otra persona del personal.', campo: 'correo' });
+  }
+
+  async agregar(datos: Partial<Personal>) {
+    await this.revisarCorreo(datos.correo!);
+    return this.repositorio.save(this.repositorio.create({ ...datos, correo: datos.correo!.trim().toLowerCase(), codigo: await this.siguienteCodigo() }));
+  }
+
+  // Sirve para editar un legajo o para cambiar varios a la vez (rol o ausencia).
+  async actualizar(ids: string[], cambios: Partial<Personal>) {
+    if (cambios.correo) {
+      if (ids.length > 1) throw new BadRequestException('El correo se cambia de a una persona.');
+      await this.revisarCorreo(cambios.correo, ids[0]);
+      cambios.correo = cambios.correo.trim().toLowerCase();
+    }
+    const personas = await this.repositorio.find({ where: { id: In(ids) } });
+    personas.forEach((p) => Object.assign(p, cambios));
+    return this.repositorio.save(personas);
+  }
+
+  async eliminar(ids: string[]) {
+    const personas = await this.repositorio.find({ where: { id: In(ids) } });
+    const conUsuario = personas.filter((p) => p.usuarioId);
+    if (conUsuario.length) {
+      throw new BadRequestException(`${conUsuario.map((p) => p.nombre).join(', ')} tiene usuario del portal: cargale una ausencia en lugar de eliminarlo.`);
+    }
+    await this.repositorio.remove(personas);
   }
 
   deUsuario(usuarioId: string) {

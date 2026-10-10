@@ -23,6 +23,8 @@ import { ArchivosModule } from './modulos/archivos/archivos.module';
 import { MiCuentaModule } from './modulos/mi-cuenta/mi-cuenta.module';
 import { IaModule } from './modulos/ia/ia.module';
 import { GestionModule } from './modulos/gestion/gestion.module';
+import { AdminModule } from './modulos/admin/admin.module';
+import { NoticiasModule } from './modulos/noticias/noticias.module';
 
 @Module({
   imports: [
@@ -45,6 +47,8 @@ import { GestionModule } from './modulos/gestion/gestion.module';
     MiCuentaModule,
     IaModule,
     GestionModule,
+    AdminModule,
+    NoticiasModule,
 
     // A medida que avancemos con las siguientes fases, acá se van
     // agregando: DisciplinasModule, ClubInfoModule, BeneficiosModule,

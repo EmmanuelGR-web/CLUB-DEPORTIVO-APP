@@ -135,6 +135,13 @@ export class PerfilesService {
     };
   }
 
+  // Perfiles completos de varios socios de una vez, sin el detalle de
+  // pedidos pendientes (lo usa la administración para la facturación).
+  async armarVarios(socios: Socio[], hoy = new Date()) {
+    const estados = await this.pagos.estadosDeCuenta(socios, hoy);
+    return socios.map((s) => ({ ...this.datosBasicos(s, hoy), pagos: estados.get(s.id) ?? [] }));
+  }
+
   // Valor actual de un campo, en el mismo formato que llega del formulario.
   private valorActual(socio: Socio, campo: CampoEditable): unknown {
     if (campo === 'fechaNacimiento') return socio.fechaNacimiento ? String(socio.fechaNacimiento).slice(0, 10) : '';

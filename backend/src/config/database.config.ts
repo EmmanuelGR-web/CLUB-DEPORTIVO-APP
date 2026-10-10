@@ -20,6 +20,7 @@ import { Archivo } from '../modulos/archivos/archivo.entity';
 import { RegistroCambio } from '../modulos/registro-cambios/registro-cambio.entity';
 import { Hilo, Mensaje } from '../modulos/mensajes/mensaje.entity';
 import { Personal, Jornada } from '../modulos/personal/personal.entity';
+import { Noticia } from '../modulos/noticias/noticia.entity';
 
 // Opciones asíncronas: esperamos a que ConfigModule cargue el .env
 // antes de intentar conectarnos a la base.
@@ -40,7 +41,7 @@ const configuracionBaseDatos: TypeOrmModuleAsyncOptions = {
     // Lista de entidades (tablas) que TypeORM debe reconocer.
     // A medida que sumemos módulos (pagos, disciplinas, etc.) se
     // van agregando sus entidades acá.
-    entities: [Socio, CategoriaSocio, Pago, Archivo, RegistroCambio, Hilo, Mensaje, Personal, Jornada],
+    entities: [Socio, CategoriaSocio, Pago, Archivo, RegistroCambio, Hilo, Mensaje, Personal, Jornada, Noticia],
 
     // IMPORTANTE: synchronize en false. Con 20.000+ socios y datos
     // reales de dinero, NUNCA se debe dejar que TypeORM modifique
