@@ -21,7 +21,7 @@ import { useDatosEnVivo } from '../../hooks/useDatosEnVivo'
 import { useTituloPagina } from '../../hooks/useTituloPagina'
 import { useVista } from '../../hooks/useVista'
 import { useSesion } from '../../contextos/SesionContexto'
-import { barraInferiorSocio, menuSocio } from '../../datos/menus'
+import { barraInferior, menuSocio } from '../../datos/menus'
 import { descargarCredencial } from '../../utilidades/pdf'
 import { formatearPesos } from '../../utilidades/carnet'
 import { alertaError, alertaExito } from '../../utilidades/alertas'
@@ -113,7 +113,7 @@ function ContenidoSocio({ datos, recargar, actualizado, cambiarDatos }) {
       onActualizar={recargar}
       actualizado={actualizado}
       onVolver={puedeVolver ? volver : undefined}
-      barraInferior={<BarraInferior items={barraInferiorSocio} activo={seccion} onSeleccionar={setSeccion} />}
+      barraInferior={<BarraInferior items={barraInferior} activo={seccion} onSeleccionar={setSeccion} />}
     >
       {seccion === 'resumen' && (
         <>
