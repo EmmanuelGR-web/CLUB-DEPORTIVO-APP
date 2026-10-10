@@ -30,6 +30,10 @@ const configuracionBaseDatos: TypeOrmModuleAsyncOptions = {
     password: config.get<string>('DB_CONTRASENA', ''),
     database: config.get<string>('DB_NOMBRE', 'club_san_martin'),
 
+    // Supabase acepta conexiones cifradas; en el servidor de producción
+    // se activa con DB_SSL=true.
+    ssl: config.get<string>('DB_SSL') === 'true' ? { rejectUnauthorized: false } : false,
+
     // Lista de entidades (tablas) que TypeORM debe reconocer.
     // A medida que sumemos módulos (pagos, disciplinas, etc.) se
     // van agregando sus entidades acá.
