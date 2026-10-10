@@ -14,10 +14,14 @@ import { AutenticacionController } from './autenticacion.controller';
 import { AutenticacionService } from './autenticacion.service';
 import { JwtStrategy } from './estrategias/jwt.strategy';
 import { SociosModule } from '../socios/socios.module';
+import { RegistroCambiosModule } from '../registro-cambios/registro-cambios.module';
+import { MensajesModule } from '../mensajes/mensajes.module';
 
 @Module({
   imports: [
     SociosModule, // necesitamos buscar socios por email para el login
+    RegistroCambiosModule,
+    MensajesModule,
     PassportModule,
     JwtModule.registerAsync({
       imports: [ConfigModule],

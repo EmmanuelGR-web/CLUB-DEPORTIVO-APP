@@ -9,6 +9,7 @@
 // =====================================================================
 
 import { NestFactory } from '@nestjs/core';
+import { json } from 'express';
 import { ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
@@ -17,6 +18,10 @@ import { AppModule } from './app.module';
 async function iniciarAplicacion() {
   // Creamos la aplicación a partir del módulo raíz (AppModule).
   const app = await NestFactory.create(AppModule);
+
+  // Los comprobantes, adjuntos y fotos del DNI viajan como data URL
+  // dentro del JSON: el límite por defecto (100 KB) no alcanza.
+  app.use(json({ limit: '12mb' }));
 
   // Traemos el servicio de configuración para leer variables del .env
   const configuracion = app.get(ConfigService);

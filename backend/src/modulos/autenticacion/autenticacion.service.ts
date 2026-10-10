@@ -1,109 +1,139 @@
 // =====================================================================
 // autenticacion.service.ts
 // -----------------------------------------------------------------------
-// Acá vive la LÓGICA de negocio de la autenticación: verificar
-// credenciales y generar el token JWT. El controlador solo recibe
-// la petición HTTP y le delega el trabajo a este servicio.
-//
-// Principio SOLID aplicado: Single Responsibility. El controlador se
-// encarga de HTTP (rutas, códigos de estado), y este servicio se
-// encarga de la LÓGICA (validar contraseña, armar el token).
+// Login con JWT y alta online de socios. Cada rol entra a su propio
+// panel: el socio a /socio, el personal administrativo a /empleado y
+// la administración principal a /admin.
 // =====================================================================
 
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { BadRequestException, Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
+import { DataSource } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { SociosService } from '../socios/socios.service';
+import { Socio, MedioPagoSocio } from '../socios/entidades/socio.entity';
+import { RegistrarSocioDto } from '../socios/dto/registrar-socio.dto';
+import { RegistroCambiosService } from '../registro-cambios/registro-cambios.service';
+import { MensajesService } from '../mensajes/mensajes.service';
+import { Rol } from '../../comun/enums/rol.enum';
+import { CORREO_ADMINISTRACION, correoInstitucional } from '../../comun/utilidades/correos.util';
+
+const PANEL_POR_ROL: Record<Rol, { ruta: string; rolTexto: string }> = {
+  [Rol.SOCIO]: { ruta: '/socio', rolTexto: 'Socio' },
+  [Rol.ADMINISTRATIVO]: { ruta: '/empleado', rolTexto: 'Personal administrativo' },
+  [Rol.ADMIN_PRINCIPAL]: { ruta: '/admin', rolTexto: 'Administración principal' },
+};
+
+const EMISORES = ['bna', 'macro', 'mercadopago', 'uala'];
+
+function medioPagoValido(medio: Record<string, unknown>): MedioPagoSocio {
+  if (medio?.tipo === 'efectivo') return { tipo: 'efectivo', debitoAutomatico: false };
+  if (medio?.tipo === 'tarjeta' && EMISORES.includes(String(medio.emisor)) && /^\d{4}$/.test(String(medio.ultimos4))) {
+    return {
+      tipo: 'tarjeta',
+      debitoAutomatico: Boolean(medio.debitoAutomatico),
+      emisor: String(medio.emisor),
+      red: ['visa', 'mastercard', 'amex'].includes(String(medio.red)) ? String(medio.red) : null,
+      ultimos4: String(medio.ultimos4),
+    };
+  }
+  throw new BadRequestException('Elegí un método de pago válido.');
+}
 
 @Injectable()
 export class AutenticacionService {
   constructor(
     private readonly sociosService: SociosService,
     private readonly jwtService: JwtService,
+    private readonly registro: RegistroCambiosService,
+    private readonly mensajes: MensajesService,
+    private readonly fuente: DataSource,
   ) {}
 
-  // Verifica que el email exista y que la contraseña coincida
-  // con el hash guardado en la base de datos.
-  async validarCredenciales(email: string, contrasena: string) {
-    const socio = await this.sociosService.buscarPorEmailConContrasena(email);
-
-    if (!socio) {
-      throw new UnauthorizedException('Email o contraseña incorrectos');
-    }
-
-    // bcrypt.compare compara la contraseña en texto plano contra el
-    // hash guardado, SIN nunca desencriptar el hash (por seguridad,
-    // las contraseñas nunca se guardan en texto plano).
-    const contrasenaValida = await bcrypt.compare(contrasena, socio.contrasenaHash);
-
-    if (!contrasenaValida) {
-      throw new UnauthorizedException('Email o contraseña incorrectos');
-    }
-
-    return socio;
+  usuarioDeSesion(socio: Socio) {
+    return {
+      id: socio.id,
+      nombre: socio.nombreCompleto,
+      email: socio.email,
+      idSocio: String(socio.idSocio),
+      rol: socio.rol,
+      ...PANEL_POR_ROL[socio.rol],
+    };
   }
 
-  // Genera el token JWT que el frontend va a guardar y mandar en
-  // cada petición para demostrar que está autenticado.
   async iniciarSesion(email: string, contrasena: string) {
-    const socio = await this.validarCredenciales(email, contrasena);
-
-    const cargaUtil = {
-      sub: socio.id,
-      email: socio.email,
-      rol: socio.rol,
-    };
+    const socio = await this.sociosService.buscarPorEmailConContrasena(email);
+    // Mismo mensaje si no existe el correo o si la contraseña es otra,
+    // para no revelar qué correos están registrados.
+    if (!socio || !(await bcrypt.compare(contrasena, socio.contrasenaHash))) {
+      throw new UnauthorizedException('Revisá el correo y la contraseña e intentá de nuevo.');
+    }
+    if (!socio.activo) throw new UnauthorizedException('La cuenta está dada de baja. Comunicate con la secretaría del club.');
 
     return {
-      tokenAcceso: this.jwtService.sign(cargaUtil),
-      usuario: {
-        id: socio.id,
-        nombre: socio.nombre,
-        apellido: socio.apellido,
-        idSocio: socio.idSocio,
-        rol: socio.rol,
-      },
+      tokenAcceso: this.jwtService.sign({ sub: socio.id, email: socio.email, rol: socio.rol }),
+      usuario: this.usuarioDeSesion(socio),
     };
   }
 
-  // Genera un hash seguro de contraseña, usado al crear una cuenta nueva.
-  async encriptarContrasena(contrasena: string): Promise<string> {
-    const rondasDeSal = 10; // costo computacional del hash (mayor = más seguro pero más lento)
-    return bcrypt.hash(contrasena, rondasDeSal);
+  encriptarContrasena(contrasena: string) {
+    return bcrypt.hash(contrasena, 10);
   }
 
-  // Registra un socio nuevo (alta desde la app, sin ir presencialmente
-  // al club) y lo deja logueado automáticamente, devolviendo su token,
-  // para que no tenga que loguearse "a mano" justo después de crear
-  // la cuenta.
-  async registrarSocio(datos: {
-    nombre: string;
-    apellido: string;
-    email: string;
-    contrasena: string;
-    telefono?: string;
-    fechaNacimiento?: string;
-    ciudad?: string;
-    provincia?: string;
-    direccion?: string;
-  }) {
+  // Alta online: el socio queda "En validación" hasta que el personal
+  // compara sus datos con el DNI. El pedido aparece en Solicitudes.
+  async registrarSocio(datos: RegistrarSocioDto) {
     const contrasenaHash = await this.encriptarContrasena(datos.contrasena);
+    const medioPago = medioPagoValido(datos.medioPago);
 
-    await this.sociosService.crear({
-      nombre: datos.nombre,
-      apellido: datos.apellido,
-      email: datos.email,
-      contrasenaHash,
-      telefono: datos.telefono,
-      fechaNacimiento: datos.fechaNacimiento,
-      ciudad: datos.ciudad,
-      provincia: datos.provincia,
-      direccion: datos.direccion,
+    const socio = await this.fuente.transaction(async (gestor) => {
+      const nuevo = await this.sociosService.crear(
+        {
+          nombre: datos.nombre,
+          apellido: datos.apellido,
+          email: datos.email,
+          contrasenaHash,
+          dni: datos.dni,
+          fechaNacimiento: datos.fechaNacimiento,
+          direccion: datos.direccion,
+          telefono: datos.telefono,
+          foto: datos.foto,
+          medioPago,
+          lecturaIA: datos.lecturaIA ?? null,
+          estado: 'En validación',
+        },
+        gestor,
+      );
+
+      await this.registro.registrar(
+        {
+          socioId: nuevo.id,
+          socioNombre: nuevo.nombreCompleto,
+          seccion: 'Alta de socio',
+          cambios: [{ campo: 'Estado', anterior: '—', nuevo: 'Registrado desde la web' }],
+          pendiente: true,
+        },
+        gestor,
+      );
+
+      await this.mensajes.crearHilo(
+        nuevo.id,
+        'socio',
+        {
+          autorId: null,
+          delClub: true,
+          de: CORREO_ADMINISTRACION,
+          para: correoInstitucional(nuevo.nombreCompleto, String(nuevo.idSocio)),
+        },
+        {
+          asunto: 'Recibimos tu solicitud de alta',
+          texto: `Hola, ${nuevo.nombre}. Gracias por asociarte al club. El personal va a validar tus datos con las fotos de tu DNI y te avisamos por acá cuando tu carnet digital quede activo.`,
+        },
+        gestor,
+      );
+      return nuevo;
     });
 
-    // Reutilizamos iniciarSesion: así garantizamos que el token que se
-    // genera acá es EXACTAMENTE igual al que se generaría si el socio
-    // hiciera login manualmente después.
-    return this.iniciarSesion(datos.email, datos.contrasena);
+    return { id: socio.id, nombre: socio.nombre, estado: socio.estado };
   }
 }
