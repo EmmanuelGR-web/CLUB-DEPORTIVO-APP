@@ -8,6 +8,10 @@
 // peticiones en el puerto configurado.
 // =====================================================================
 
+// Vencimientos (día 15) y jornadas se cuentan en hora argentina, aunque
+// el servidor de producción corra en UTC.
+process.env.TZ = process.env.TZ || 'America/Argentina/Buenos_Aires';
+
 import { NestFactory } from '@nestjs/core';
 import { json } from 'express';
 import { ValidationPipe } from '@nestjs/common';

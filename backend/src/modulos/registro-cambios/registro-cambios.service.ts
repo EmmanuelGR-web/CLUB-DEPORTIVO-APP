@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { EntityManager, IsNull, Repository } from 'typeorm';
 import { CambioVisible, RegistroCambio, ValoresCambio } from './registro-cambio.entity';
@@ -31,6 +31,21 @@ export class RegistroCambiosService {
         pendiente: datos.pendiente ?? false,
       }),
     );
+  }
+
+  listarTodos(limite = 500) {
+    return this.repositorio.find({ order: { fecha: 'DESC' }, take: limite });
+  }
+
+  async buscar(id: string) {
+    const registro = await this.repositorio.findOne({ where: { id } });
+    if (!registro) throw new NotFoundException('La solicitud no existe.');
+    return registro;
+  }
+
+  marcarResuelto(registro: RegistroCambio, resultado: 'Autorizado' | 'Rechazado', motivo: string, firma: string) {
+    Object.assign(registro, { resuelto: resultado, motivo: motivo || null, resueltoPor: firma, resueltoEn: new Date() });
+    return this.repositorio.save(registro);
   }
 
   listarDeSocio(socioId: string) {

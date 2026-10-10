@@ -3,7 +3,7 @@ import { ArchivoAdjunto } from '../archivos/archivo.entity';
 
 // Un hilo 'socio' es la conversación de un socio con administración.
 // Un hilo 'interno' es entre la dirección y una persona del personal
-// (en ese caso socio_id apunta al empleado).
+// (personal_id); en ese caso leidoPorSocio es "leído por el empleado".
 @Entity('hilos')
 export class Hilo {
   @PrimaryGeneratedColumn('uuid')
@@ -14,6 +14,9 @@ export class Hilo {
 
   @Column({ name: 'socio_id', type: 'uuid', nullable: true })
   socioId: string | null;
+
+  @Column({ name: 'personal_id', type: 'uuid', nullable: true })
+  personalId: string | null;
 
   @Column({ length: 120 })
   asunto: string;
