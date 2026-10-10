@@ -82,8 +82,6 @@ function GestionBeneficios() {
 
   return (
     <Tarjeta titulo="Beneficios para socios">
-      <p className="small text-body-secondary">Lo que se publica acá lo ven todos los socios en la sección Beneficios de su panel.</p>
-
       <EstadoConsulta cargando={cargando} error={error} vacio={beneficios?.length === 0} onReintentar={recargar} textoVacio="Todavía no hay beneficios." />
 
       {beneficios?.length > 0 && (

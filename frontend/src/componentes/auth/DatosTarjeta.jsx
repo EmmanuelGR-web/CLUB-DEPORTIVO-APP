@@ -146,9 +146,6 @@ function DatosTarjeta({ tarjeta, onCambiar, marcar, mensajes, conDebito = true }
         />
       )}
 
-      <p className="small text-white-50 d-flex align-items-center gap-2 mb-0">
-        Simulación: de la tarjeta solo se guardan la marca y los últimos 4 números.
-      </p>
     </div>
   )
 }

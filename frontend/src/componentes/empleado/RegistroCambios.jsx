@@ -109,10 +109,6 @@ function RegistroCambios({ registros }) {
 
   return (
     <Tarjeta titulo="Registro de cambios">
-      <p className="small text-body-secondary">
-        Cada cambio en la cuenta de un socio, quién lo hizo, cuándo y qué dato tenía antes. Sirve como constancia ante cualquier reclamo.
-      </p>
-
       <div className="d-flex flex-wrap gap-2 mb-2" role="group" aria-label="Tipo de cambio">
         <Button size="sm" variant={tipo ? 'outline-secondary' : 'secondary'} className="rounded-pill px-3" onClick={() => setTipo('')}>
           Todos <span className="opacity-75 ms-1">{registros.length}</span>
