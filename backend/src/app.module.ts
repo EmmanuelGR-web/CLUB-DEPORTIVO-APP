@@ -19,6 +19,9 @@ import configuracionBaseDatos from './config/database.config';
 import { AutenticacionModule } from './modulos/autenticacion/autenticacion.module';
 import { SociosModule } from './modulos/socios/socios.module';
 import { PagosModule } from './modulos/pagos/pagos.module';
+import { ArchivosModule } from './modulos/archivos/archivos.module';
+import { MiCuentaModule } from './modulos/mi-cuenta/mi-cuenta.module';
+import { IaModule } from './modulos/ia/ia.module';
 
 @Module({
   imports: [
@@ -37,6 +40,9 @@ import { PagosModule } from './modulos/pagos/pagos.module';
     AutenticacionModule,
     SociosModule,
     PagosModule,
+    ArchivosModule,
+    MiCuentaModule,
+    IaModule,
 
     // A medida que avancemos con las siguientes fases, acá se van
     // agregando: DisciplinasModule, ClubInfoModule, BeneficiosModule,

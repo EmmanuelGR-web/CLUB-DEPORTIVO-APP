@@ -1,88 +1,75 @@
 // =====================================================================
 // sembrar.js
 // -----------------------------------------------------------------------
-// Carga los usuarios de prueba y un historial de cuotas para poder
-// mostrar la app sin tener que registrarse ni cargar pagos a mano.
+// Carga el padrón de prueba: los usuarios del portal (socio, personal
+// administrativo y administración principal) y socios de ejemplo con
+// sus cuotas pagadas, una en revisión y un alta esperando validación.
 //
 //   npm run sembrar
 //
 // Se puede correr las veces que haga falta: los usuarios se buscan por
-// email (si existen se les restablece la contraseña), las cuotas por
-// período, y los pagos del socio de prueba se vuelven a armar desde
-// cero. No toca ninguna otra cuenta ni sus pagos.
+// email y sus pagos, mensajes y registros se vuelven a armar desde cero.
+// No toca ninguna otra cuenta. Usa las mismas reglas de cuotas que el
+// backend (por eso compila antes de correr).
 // =====================================================================
 
 const { randomUUID } = require('node:crypto');
 const bcrypt = require('bcrypt');
 const { Client } = require('pg');
+const { periodosDesdeAlta, calcularCuota } = require('../dist/comun/utilidades/cuotas.util');
+const { correoInstitucional, CORREO_ADMINISTRACION } = require('../dist/comun/utilidades/correos.util');
+
+const tarjeta = (emisor, red, ultimos4, debitoAutomatico) => ({ tipo: 'tarjeta', emisor, red, ultimos4, debitoAutomatico });
+const efectivo = { tipo: 'efectivo', debitoAutomatico: false };
 
 const USUARIOS = [
   {
-    email: 'socio@club.com',
-    contrasena: 'socio123',
-    nombre: 'Lucía',
-    apellido: 'Herrera',
-    rol: 'socio',
-    fechaAlta: '2019-03-01', // 7 años: socio Plata, camino a Oro
-    telefono: '381 555-0101',
-    ciudad: 'San Miguel de Tucumán',
-    provincia: 'Tucumán',
-    direccion: 'Av. Mate de Luna 2150',
-    fechaNacimiento: '1994-06-12',
+    email: 'socio@club.com', contrasena: 'socio123', rol: 'socio',
+    nombre: 'Juan', apellido: 'Pérez', dni: '12345678', fechaNacimiento: '1990-06-15',
+    direccion: 'Av. Aconquija 1450, Yerba Buena', telefono: '381 555-7788',
+    fechaAlta: '2020-03-10', medioPago: tarjeta('macro', 'visa', '4242', true), conBandeja: true,
   },
   {
-    email: 'administrativo@club.com',
-    contrasena: 'admin123',
-    nombre: 'Martín',
-    apellido: 'Díaz',
-    rol: 'administrativo',
-    fechaAlta: '2016-08-15',
-    ciudad: 'San Miguel de Tucumán',
-    provincia: 'Tucumán',
+    email: 'administrativo@club.com', contrasena: 'admin123', rol: 'administrativo',
+    nombre: 'Pedro', apellido: 'Díaz', dni: '28456123', fechaNacimiento: '1985-03-12',
+    direccion: 'San Martín 980, San Miguel de Tucumán', telefono: '381 444-1201', fechaAlta: '2016-08-15', medioPago: efectivo,
   },
   {
-    email: 'administrador@club.com',
-    contrasena: 'principal123',
-    nombre: 'Graciela',
-    apellido: 'Paz',
-    rol: 'admin_principal',
-    fechaAlta: '2008-02-01',
-    ciudad: 'Yerba Buena',
-    provincia: 'Tucumán',
+    email: 'administrador@club.com', contrasena: 'principal123', rol: 'admin_principal',
+    nombre: 'Laura', apellido: 'Gómez', dni: '25789456', fechaNacimiento: '1979-11-04',
+    direccion: 'Av. Solano Vera 1200, Yerba Buena', telefono: '381 444-1100', fechaAlta: '2008-02-01', medioPago: efectivo,
   },
 ];
 
-// La cuota vence el 15 de cada mes.
-const CUOTAS = ['2026-05', '2026-06', '2026-07', '2026-08', '2026-09', '2026-10'].map((periodo) => ({
-  periodo,
-  monto: 15000,
-  vencimiento: `${periodo}-15`,
-}));
+// Socios de ejemplo del padrón. Entran con la contraseña "socio123".
+const SOCIOS_EJEMPLO = [
+  { nombre: 'Ricardo', apellido: 'Álvarez', dni: '20145879', fechaNacimiento: '1968-04-02', direccion: 'Av. Mate de Luna 2150, San Miguel de Tucumán', telefono: '381 421-5566', email: 'ricardo.alvarez@mail.com', fechaAlta: '2009-04-18', medioPago: tarjeta('bna', 'visa', '4410', true) },
+  { nombre: 'Marta', apellido: 'Giménez', dni: '23987451', fechaNacimiento: '1974-09-21', direccion: 'Crisóstomo Álvarez 870, San Miguel de Tucumán', telefono: '381 430-1122', email: 'marta.gimenez@mail.com', fechaAlta: '2013-08-05', medioPago: efectivo, mesActual: { estado: 'aprobado', medio: 'Efectivo', dia: 8 } },
+  { nombre: 'Lucas', apellido: 'Herrera', dni: '36214578', fechaNacimiento: '1992-01-15', direccion: 'Santiago del Estero 1540, San Miguel de Tucumán', telefono: '381 512-7788', email: 'lucas.herrera@mail.com', fechaAlta: '2017-02-22', medioPago: efectivo },
+  { nombre: 'Sofía', apellido: 'Romero', dni: '39874512', fechaNacimiento: '1996-06-30', direccion: 'Aconquija 3200, Yerba Buena', telefono: '381 655-9021', email: 'sofia.romero@mail.com', fechaAlta: '2019-11-10', medioPago: tarjeta('macro', 'mastercard', '5588', false), mesActual: { estado: 'pendiente', medio: 'Transferencia', dia: 7, conComprobante: true } },
+  { nombre: 'Tomás', apellido: 'Acosta', dni: '42563987', fechaNacimiento: '2000-03-08', direccion: 'Las Piedras 640, San Miguel de Tucumán', telefono: '381 587-3344', email: 'tomas.acosta@mail.com', fechaAlta: '2022-06-30', medioPago: tarjeta('mercadopago', 'visa', '7731', true) },
+  { nombre: 'Valentina', apellido: 'Ruiz', dni: '44125896', fechaNacimiento: '2003-11-12', direccion: 'Bernabé Aráoz 300, San Miguel de Tucumán', telefono: '381 699-4455', email: 'valentina.ruiz@mail.com', fechaAlta: '2025-01-15', medioPago: efectivo },
+  { nombre: 'Joaquín', apellido: 'Molina', dni: '46987123', fechaNacimiento: '2006-08-19', direccion: 'Perú 1100, Yerba Buena', telefono: '381 700-8812', email: 'joaquin.molina@mail.com', fechaAlta: '2026-03-02', medioPago: tarjeta('uala', 'mastercard', '2044', true) },
+  { nombre: 'Camila', apellido: 'Sosa', dni: '45321789', fechaNacimiento: '2004-02-27', direccion: 'Lamadrid 455, San Miguel de Tucumán', telefono: '381 622-1098', email: 'camila.sosa@mail.com', fechaAlta: '2026-09-22', medioPago: efectivo, estado: 'En validación' },
+].map((s) => ({ ...s, contrasena: 'socio123', rol: 'socio' }));
 
-// Historial del socio de prueba: un poco de todo para ver cada estado.
-// Las cuotas que no aparecen acá (2026-10) quedan sin pagar.
-const PAGOS_SOCIO = [
-  { periodo: '2026-05', medio: 'efectivo', estado: 'aprobado', fecha: '2026-05-10' },
-  { periodo: '2026-06', medio: 'transferencia', estado: 'aprobado', fecha: '2026-06-12' },
-  { periodo: '2026-07', medio: 'debito', estado: 'aprobado', fecha: '2026-07-14' },
-  { periodo: '2026-08', medio: 'transferencia', estado: 'rechazado', fecha: '2026-08-20', observacion: 'El comprobante de la transferencia no se lee. Volvé a informar el pago.' },
-  { periodo: '2026-09', medio: 'credito', estado: 'pendiente', fecha: '2026-09-14' },
+const BANDEJA_INICIAL = [
+  { fecha: '2026-09-25', asunto: 'Entradas para el partido del domingo', texto: 'Ya podés retirar tu entrada anticipada para el partido ante Deportivo Aconquija presentando tu carnet digital.', leido: false },
+  { fecha: '2026-09-20', asunto: 'Nuevo beneficio en la tienda', texto: 'Este mes tenés 20 % de descuento en la camiseta alternativa, solo para socios.', leido: false },
+  { fecha: '2026-09-01', asunto: 'Bienvenida a la temporada', texto: 'Gracias por acompañar al club un año más. ¡Nos vemos en La Caldera!', leido: true },
 ];
 
-const numeroComprobante = (idPago, fecha) =>
-  `REC-${fecha.slice(0, 4)}-${idPago.replace(/-/g, '').slice(0, 8).toUpperCase()}`;
+const COMPROBANTE_SOFIA = `data:image/svg+xml;base64,${Buffer.from(
+  '<svg xmlns="http://www.w3.org/2000/svg" width="480" height="300"><rect width="480" height="300" fill="#fbf5ea"/><rect width="480" height="56" fill="#7a0f2e"/><text x="24" y="36" font-family="Arial" font-size="20" fill="#fff">Comprobante de transferencia</text><text x="24" y="104" font-family="Arial" font-size="16" fill="#1e1b24">Origen: Sofía Romero · Banco Macro</text><text x="24" y="136" font-family="Arial" font-size="16" fill="#1e1b24">Destino: Club Deportivo · CBU 0000003100012345678901</text><text x="24" y="168" font-family="Arial" font-size="16" fill="#1e1b24">Concepto: cuota social</text><text x="24" y="220" font-family="Arial" font-size="28" font-weight="bold" fill="#7a0f2e">$ 18.000</text><text x="24" y="270" font-family="Arial" font-size="13" fill="#6b6475">Operación N° 88412037 · Transferencia inmediata</text></svg>',
+).toString('base64')}`;
 
-function aniosDesde(fecha) {
-  const alta = new Date(fecha);
-  const hoy = new Date();
-  let anios = hoy.getFullYear() - alta.getFullYear();
-  if (hoy < new Date(hoy.getFullYear(), alta.getMonth(), alta.getDate())) anios -= 1;
-  return anios;
-}
+const hoy = new Date();
+const fechaDelMes = (dia) => new Date(hoy.getFullYear(), hoy.getMonth(), Math.min(dia, hoy.getDate()), 12);
+const numeroComprobante = (id, fecha) => `REC-${fecha.getFullYear()}-${id.replace(/-/g, '').slice(0, 8).toUpperCase()}`;
 
 async function sembrar() {
   const host = process.env.DB_HOST ?? 'localhost';
-  const cliente = new Client({
+  const db = new Client({
     host,
     port: Number(process.env.DB_PUERTO ?? 5432),
     user: process.env.DB_USUARIO,
@@ -90,91 +77,113 @@ async function sembrar() {
     database: process.env.DB_NOMBRE,
     ssl: process.env.DB_SSL === 'true' || host.includes('supabase') ? { rejectUnauthorized: false } : false,
   });
-  await cliente.connect();
+  await db.connect();
 
   try {
-    await cliente.query('BEGIN');
+    await db.query('BEGIN');
+    const { rows: categorias } = await db.query('SELECT id, nombre FROM categorias_socio');
 
-    const { rows: categorias } = await cliente.query('SELECT id, anios_minimos, anios_maximos FROM categorias_socio');
-    const categoriaPara = (anios) =>
-      categorias.find((c) => anios >= c.anios_minimos && (c.anios_maximos === null || anios <= c.anios_maximos))?.id ?? null;
-
-    const idsPorEmail = {};
-    for (const usuario of USUARIOS) {
-      const hash = await bcrypt.hash(usuario.contrasena, 10);
-      const { rows } = await cliente.query(
-        `INSERT INTO socios (nombre, apellido, email, contrasena_hash, telefono, fecha_nacimiento, ciudad, provincia, direccion, fecha_alta, categoria_id, rol)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+    for (const u of [...USUARIOS, ...SOCIOS_EJEMPLO]) {
+      const hash = await bcrypt.hash(u.contrasena, 10);
+      const { rows } = await db.query(
+        `INSERT INTO socios (nombre, apellido, email, contrasena_hash, dni, telefono, fecha_nacimiento, direccion, fecha_alta, rol, estado, medio_pago, debe_cambiar_contrasena, activo)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, FALSE, TRUE)
          ON CONFLICT (email) DO UPDATE SET
-           contrasena_hash = EXCLUDED.contrasena_hash,
-           rol = EXCLUDED.rol,
-           fecha_alta = EXCLUDED.fecha_alta,
-           categoria_id = EXCLUDED.categoria_id,
-           activo = TRUE,
-           actualizado_en = now()
+           nombre = EXCLUDED.nombre, apellido = EXCLUDED.apellido, contrasena_hash = EXCLUDED.contrasena_hash,
+           dni = EXCLUDED.dni, telefono = EXCLUDED.telefono, fecha_nacimiento = EXCLUDED.fecha_nacimiento,
+           direccion = EXCLUDED.direccion, fecha_alta = EXCLUDED.fecha_alta, rol = EXCLUDED.rol, estado = EXCLUDED.estado,
+           medio_pago = EXCLUDED.medio_pago, foto_carnet_url = NULL, foto_actualizada = NULL, debe_cambiar_contrasena = FALSE,
+           activo = TRUE, actualizado_en = now()
          RETURNING id, id_socio`,
-        [
-          usuario.nombre,
-          usuario.apellido,
-          usuario.email,
-          hash,
-          usuario.telefono ?? null,
-          usuario.fechaNacimiento ?? null,
-          usuario.ciudad ?? null,
-          usuario.provincia ?? null,
-          usuario.direccion ?? null,
-          usuario.fechaAlta,
-          categoriaPara(aniosDesde(usuario.fechaAlta)),
-          usuario.rol,
-        ],
+        [u.nombre, u.apellido, u.email, hash, u.dni, u.telefono, u.fechaNacimiento, u.direccion, u.fechaAlta, u.rol, u.estado ?? 'Activo', JSON.stringify(u.medioPago)],
       );
-      idsPorEmail[usuario.email] = rows[0].id;
-      console.log(`  ✔ ${usuario.rol.padEnd(15)} ${usuario.email.padEnd(26)} N.º ${rows[0].id_socio}`);
+      const { id, id_socio: numero } = rows[0];
+      const nombreCompleto = `${u.nombre} ${u.apellido}`;
+
+      // Se rehace todo lo que depende del socio.
+      await db.query('DELETE FROM pagos WHERE socio_id = $1', [id]);
+      await db.query('DELETE FROM hilos WHERE socio_id = $1', [id]);
+      await db.query('DELETE FROM registro_cambios WHERE socio_id = $1', [id]);
+
+      const periodos = periodosDesdeAlta(new Date(`${u.fechaAlta}T12:00:00`), hoy);
+      const debita = u.medioPago.tipo === 'tarjeta' && u.medioPago.debitoAutomatico;
+      const medioHistorico = u.medioPago.tipo === 'tarjeta' ? 'Tarjeta' : 'Efectivo';
+
+      if (u.rol === 'socio' && u.estado !== 'En validación') {
+        for (const p of periodos) {
+          const esActual = p.anio === hoy.getFullYear() && p.mes === hoy.getMonth();
+          // Los meses anteriores quedan pagados; el actual depende del socio.
+          if (esActual && !debita && !u.mesActual) continue;
+          const pagoId = randomUUID();
+          const actual = esActual ? u.mesActual : null;
+          const fechaPago = actual ? fechaDelMes(actual.dia) : debita ? new Date(p.anio, p.mes, 1, 12) : new Date(p.anio, p.mes, Math.min(10, 28), 12);
+          const cuota = calcularCuota(p.base, fechaPago, p.vence);
+          const estado = actual?.estado ?? 'aprobado';
+          let comprobanteId = null;
+          let verificacion = null;
+          if (actual?.conComprobante) {
+            comprobanteId = randomUUID();
+            await db.query('INSERT INTO archivos (id, nombre, tipo, tamanio, datos, subido_por) VALUES ($1, $2, $3, $4, $5, $6)', [
+              comprobanteId, 'comprobante-sofia-romero.svg', 'image/svg+xml', 1400, COMPROBANTE_SOFIA, id,
+            ]);
+            const fechaTexto = fechaPago.toISOString().slice(0, 10);
+            verificacion = { leido: true, esComprobante: true, monto: cuota.total, fecha: fechaTexto, numeroOperacion: '88412037', origen: 'Sofía Romero · Banco Macro', destino: 'Club Deportivo', observaciones: '', montoEsperado: cuota.total, coincideMonto: true, coincideFecha: true };
+          }
+          await db.query(
+            `INSERT INTO pagos (id, socio_id, periodo, concepto, base, recargo, dias_demora, monto, medio_pago, estado, fecha_pago, informado_en, comprobante_id, verificacion_ia, numero_comprobante, resuelto_por, resuelto_en)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $11, $12, $13, $14, $15, $16)`,
+            [
+              pagoId, id, p.periodo, p.concepto, p.base, cuota.recargo, cuota.dias, cuota.total,
+              actual?.medio ?? (debita ? 'Tarjeta' : medioHistorico), estado, fechaPago, comprobanteId, verificacion,
+              estado === 'aprobado' ? numeroComprobante(pagoId, fechaPago) : null,
+              estado === 'aprobado' ? (debita && !actual ? 'Débito automático' : 'Pedro Díaz (A01)') : null,
+              estado === 'aprobado' ? fechaPago : null,
+            ],
+          );
+        }
+      }
+
+      if (u.rol === 'socio') {
+        const para = correoInstitucional(nombreCompleto, String(numero));
+        const mensajes = u.conBandeja
+          ? BANDEJA_INICIAL
+          : [{ fecha: u.fechaAlta, asunto: u.estado === 'En validación' ? 'Recibimos tu solicitud de alta' : 'Bienvenida al club', texto: u.estado === 'En validación' ? `Hola, ${u.nombre}. Gracias por asociarte al club. El personal va a validar tus datos con las fotos de tu DNI y te avisamos por acá cuando tu carnet digital quede activo.` : `Hola, ${u.nombre}. Ya sos parte del club: tu carnet digital está en el panel de socio.`, leido: true }];
+        for (const m of mensajes) {
+          const { rows: hilo } = await db.query(
+            `INSERT INTO hilos (socio_id, tipo, asunto, leido_por_socio, leido_por_club, creado_en, actualizado_en)
+             VALUES ($1, 'socio', $2, $3, TRUE, $4, $4) RETURNING id`,
+            [id, m.asunto, m.leido, `${m.fecha}T10:00:00-03:00`],
+          );
+          await db.query('INSERT INTO mensajes (hilo_id, del_club, de, para, texto, fecha) VALUES ($1, TRUE, $2, $3, $4, $5)', [
+            hilo[0].id, CORREO_ADMINISTRACION, para, m.texto, `${m.fecha}T10:00:00-03:00`,
+          ]);
+        }
+      }
+
+      if (u.estado === 'En validación') {
+        await db.query(
+          `INSERT INTO registro_cambios (fecha, socio_id, socio_nombre, seccion, autor, cambios, pendiente)
+           VALUES ($1, $2, $3, 'Alta de socio', 'Socio', $4, TRUE)`,
+          [`${u.fechaAlta}T15:10:00-03:00`, id, nombreCompleto, JSON.stringify([{ campo: 'Estado', anterior: '—', nuevo: 'Registrado desde la web' }])],
+        );
+      }
+
+      const nombreCategoria = (() => {
+        const anios = (hoy - new Date(`${u.fechaAlta}T12:00:00`)) / (365.25 * 24 * 3600 * 1000);
+        return anios <= 2 ? 'Bronce' : anios <= 10 ? 'Plata' : 'Oro';
+      })();
+      await db.query('UPDATE socios SET categoria_id = $1 WHERE id = $2', [categorias.find((c) => c.nombre === nombreCategoria)?.id ?? null, id]);
+      console.log(`  ✔ ${u.rol.padEnd(15)} ${u.email.padEnd(28)} N.º ${numero}`);
     }
 
-    const idsPorPeriodo = {};
-    for (const cuota of CUOTAS) {
-      const { rows } = await cliente.query(
-        `INSERT INTO cuotas (periodo, monto, fecha_vencimiento) VALUES ($1, $2, $3)
-         ON CONFLICT (periodo) DO UPDATE SET periodo = EXCLUDED.periodo
-         RETURNING id`,
-        [cuota.periodo, cuota.monto, cuota.vencimiento],
-      );
-      idsPorPeriodo[cuota.periodo] = rows[0].id;
-    }
-    console.log(`  ✔ ${CUOTAS.length} cuotas (${CUOTAS[0].periodo} a ${CUOTAS.at(-1).periodo})`);
-
-    const idSocio = idsPorEmail['socio@club.com'];
-    await cliente.query('DELETE FROM pagos WHERE socio_id = $1', [idSocio]);
-    for (const pago of PAGOS_SOCIO) {
-      const id = randomUUID();
-      const { rows } = await cliente.query('SELECT monto FROM cuotas WHERE id = $1', [idsPorPeriodo[pago.periodo]]);
-      await cliente.query(
-        `INSERT INTO pagos (id, socio_id, cuota_id, monto, medio_pago, estado, fecha_pago, numero_comprobante, observacion)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
-        [
-          id,
-          idSocio,
-          idsPorPeriodo[pago.periodo],
-          rows[0].monto,
-          pago.medio,
-          pago.estado,
-          `${pago.fecha}T12:00:00-03:00`,
-          pago.estado === 'aprobado' ? numeroComprobante(id, pago.fecha) : null,
-          pago.observacion ?? null,
-        ],
-      );
-    }
-    console.log(`  ✔ ${PAGOS_SOCIO.length} pagos del socio de prueba`);
-
-    await cliente.query('COMMIT');
+    await db.query('COMMIT');
     console.log('\nDatos de prueba cargados.');
   } catch (error) {
-    await cliente.query('ROLLBACK');
+    await db.query('ROLLBACK');
     console.error('\nNo se cargó nada:', error.message);
     process.exitCode = 1;
   } finally {
-    await cliente.end();
+    await db.end();
   }
 }
 

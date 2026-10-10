@@ -1,177 +1,121 @@
 // =====================================================================
 // socios.service.ts
 // -----------------------------------------------------------------------
-// Lógica de negocio relacionada a los socios: buscarlos, actualizar
-// sus datos personales (sin tocar el número de socio) y determinar
-// su categoría según antigüedad.
-//
-// Principio SOLID aplicado: Dependency Inversion. Este servicio no
-// sabe CÓMO se guardan los datos en disco (postgres, otra base, etc),
-// solo depende de la interfaz "Repository<Socio>" que le da TypeORM.
-// Si el día de mañana se cambia el motor de base de datos, este
-// servicio no debería necesitar cambios.
+// Acceso a la tabla de socios: buscar, crear y revisar duplicados.
+// Las reglas de qué cambios necesitan aprobación viven en
+// MiCuentaService (y en el panel del personal, más adelante).
 // =====================================================================
 
-import { Injectable, NotFoundException, ForbiddenException, ConflictException } from '@nestjs/common';
+import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { Socio } from './entidades/socio.entity';
+import { EntityManager, Not, Repository } from 'typeorm';
+import { EstadoSocio, MedioPagoSocio, Socio } from './entidades/socio.entity';
 import { CategoriaSocio } from './entidades/categoria-socio.entity';
-import { ActualizarSocioDto } from './dto/actualizar-socio.dto';
-import { generarCodigoBarras } from '../../comun/utilidades/codigo-barras.util';
+import { Rol } from '../../comun/enums/rol.enum';
+import { aniosEntre, categoriaPorAntiguedad } from '../../comun/utilidades/cuotas.util';
+
+export const normalizarEmail = (email: string) => email.trim().toLowerCase();
+export const normalizarDni = (dni: string) => dni.replace(/\D/g, '');
+
+export interface DatosSocioNuevo {
+  nombre: string;
+  apellido: string;
+  email: string;
+  contrasenaHash: string;
+  dni?: string | null;
+  fechaNacimiento?: string | null;
+  direccion?: string | null;
+  telefono?: string | null;
+  foto?: string | null;
+  medioPago?: MedioPagoSocio;
+  lecturaIA?: Record<string, unknown> | null;
+  estado?: EstadoSocio;
+  rol?: Rol;
+  fechaAlta?: string;
+  debeCambiarContrasena?: boolean;
+}
 
 @Injectable()
 export class SociosService {
   constructor(
-    @InjectRepository(Socio)
-    private readonly repositorioSocios: Repository<Socio>,
-    @InjectRepository(CategoriaSocio)
-    private readonly repositorioCategorias: Repository<CategoriaSocio>,
+    @InjectRepository(Socio) private readonly repositorioSocios: Repository<Socio>,
+    @InjectRepository(CategoriaSocio) private readonly repositorioCategorias: Repository<CategoriaSocio>,
   ) {}
 
-  // Usado por el módulo de autenticación: trae también el hash de
-  // contraseña (que normalmente está oculto) porque acá sí lo
-  // necesitamos para comparar contra el login.
-  async buscarPorEmailConContrasena(email: string) {
+  buscarPorEmailConContrasena(email: string) {
     return this.repositorioSocios
       .createQueryBuilder('socio')
       .addSelect('socio.contrasenaHash')
-      .where('socio.email = :email', { email })
+      .where('socio.email = :email', { email: normalizarEmail(email) })
       .getOne();
+  }
+
+  async buscarPorIdConContrasena(id: string) {
+    const socio = await this.repositorioSocios
+      .createQueryBuilder('socio')
+      .addSelect('socio.contrasenaHash')
+      .where('socio.id = :id', { id })
+      .getOne();
+    if (!socio) throw new NotFoundException('No encontramos la cuenta.');
+    return socio;
   }
 
   async buscarPorId(id: string): Promise<Socio> {
     const socio = await this.repositorioSocios.findOne({ where: { id } });
-    if (!socio) {
-      throw new NotFoundException('Socio no encontrado');
-    }
+    if (!socio) throw new NotFoundException('No encontramos la cuenta.');
     return socio;
   }
 
-  // Actualiza SOLO los datos personales permitidos. El idSocio nunca
-  // se toca acá porque ni siquiera está definido en ActualizarSocioDto.
-  async actualizarDatosPersonales(
-    idUsuarioAutenticado: string,
-    idSocioAModificar: string,
-    datosNuevos: ActualizarSocioDto,
-  ): Promise<Socio> {
-    // Regla de seguridad extra: un socio solo puede modificar SUS
-    // PROPIOS datos, nunca los de otro socio (salvo que sea admin,
-    // lo cual se controla en el controlador con @Roles()).
-    if (idUsuarioAutenticado !== idSocioAModificar) {
-      throw new ForbiddenException('No podés modificar los datos de otro socio');
-    }
-
-    const socio = await this.buscarPorId(idSocioAModificar);
-    Object.assign(socio, datosNuevos);
-    return this.repositorioSocios.save(socio);
+  // Devuelve qué dato ya usa otra cuenta: 'email', 'dni' o null.
+  async buscarDuplicado({ email, dni }: { email?: string | null; dni?: string | null }, excluirId?: string) {
+    const excluir = excluirId ? { id: Not(excluirId) } : {};
+    if (email && (await this.repositorioSocios.exists({ where: { email: normalizarEmail(email), ...excluir } }))) return 'email';
+    if (dni && (await this.repositorioSocios.exists({ where: { dni: normalizarDni(dni), ...excluir } }))) return 'dni';
+    return null;
   }
 
-  // Crea un socio nuevo. La contraseña ya llega ENCRIPTADA (el hash lo
-  // calcula AutenticacionService, que es responsable de todo lo
-  // relacionado a seguridad de credenciales). Este servicio solo se
-  // encarga de guardar los datos correctamente.
-  async crear(datos: {
-    nombre: string;
-    apellido: string;
-    email: string;
-    contrasenaHash: string;
-    telefono?: string;
-    fechaNacimiento?: string;
-    ciudad?: string;
-    provincia?: string;
-    direccion?: string;
-  }): Promise<Socio> {
-    const socioExistente = await this.repositorioSocios.findOne({
-      where: { email: datos.email },
-    });
-    if (socioExistente) {
-      throw new ConflictException('Ya existe un socio registrado con ese email');
+  async crear(datos: DatosSocioNuevo, gestor?: EntityManager): Promise<Socio> {
+    const duplicado = await this.buscarDuplicado(datos);
+    if (duplicado) {
+      throw new ConflictException({
+        message: `Ya hay un socio registrado con ese ${duplicado === 'email' ? 'correo' : 'DNI'}.`,
+        duplicado,
+      });
     }
 
-    // Todo socio nuevo arranca en la categoría "Bronce" (0 años de
-    // antigüedad), que se recalcula automáticamente con el tiempo.
-    const categoriaInicial = await this.repositorioCategorias.findOne({
-      where: { aniosMinimos: 0 },
-    });
-
-    const socioNuevo = this.repositorioSocios.create({
-      nombre: datos.nombre,
-      apellido: datos.apellido,
-      email: datos.email,
+    const repositorio = gestor?.getRepository(Socio) ?? this.repositorioSocios;
+    const fechaAlta = datos.fechaAlta ?? new Date().toISOString().slice(0, 10);
+    const socio = repositorio.create({
+      nombre: datos.nombre.trim(),
+      apellido: datos.apellido.trim(),
+      email: normalizarEmail(datos.email),
       contrasenaHash: datos.contrasenaHash,
-      telefono: datos.telefono ?? null,
-      fechaNacimiento: datos.fechaNacimiento ? new Date(datos.fechaNacimiento) : null,
-      ciudad: datos.ciudad ?? null,
-      provincia: datos.provincia ?? null,
-      direccion: datos.direccion ?? null,
-      fechaAlta: new Date(),
-      categoria: categoriaInicial,
+      dni: datos.dni ? normalizarDni(datos.dni) : null,
+      fechaNacimiento: datos.fechaNacimiento || null,
+      direccion: datos.direccion?.trim() || null,
+      telefono: datos.telefono?.trim() || null,
+      foto: datos.foto ?? null,
+      fotoActualizada: datos.foto ? new Date() : null,
+      medioPago: datos.medioPago ?? { tipo: 'efectivo', debitoAutomatico: false },
+      lecturaIA: datos.lecturaIA ?? null,
+      estado: datos.estado ?? 'Activo',
+      rol: datos.rol ?? Rol.SOCIO,
+      fechaAlta,
+      debeCambiarContrasena: datos.debeCambiarContrasena ?? false,
+      categoria: await this.categoriaPara(new Date(`${fechaAlta}T12:00:00`)),
     });
-
-    // idSocio NO se define acá: lo asigna automáticamente la secuencia
-    // de PostgreSQL (secuencia_id_socio) que armamos en la migración.
-    return this.repositorioSocios.save(socioNuevo);
+    const guardado = await repositorio.save(socio);
+    // id_socio lo completa la secuencia de la base: se vuelve a leer.
+    return repositorio.findOneOrFail({ where: { id: guardado.id } });
   }
 
-  // Calcula y asigna la categoría (oro/plata/bronce) de un socio
-  // según sus años de antigüedad, comparando contra los rangos
-  // definidos en la tabla categorias_socio. Este método SÍ persiste
-  // el cambio en la base (útil para un proceso administrativo que
-  // recalcule categorías de forma masiva, por ejemplo una vez por mes).
-  async actualizarCategoriaPorAntiguedad(socio: Socio): Promise<Socio> {
-    const anios = socio.calcularAntiguedadEnAnios();
-    socio.categoria = await this.buscarCategoriaPorAnios(anios);
-    return this.repositorioSocios.save(socio);
+  guardar(socio: Socio, gestor?: EntityManager) {
+    return (gestor?.getRepository(Socio) ?? this.repositorioSocios).save(socio);
   }
 
-  // Busca la categoría (oro/plata/bronce) que corresponde a una
-  // cantidad de años determinada, comparando contra los rangos
-  // configurados en la tabla categorias_socio.
-  private async buscarCategoriaPorAnios(anios: number): Promise<CategoriaSocio | null> {
-    return this.repositorioCategorias
-      .createQueryBuilder('categoria')
-      .where('categoria.aniosMinimos <= :anios', { anios })
-      .andWhere('(categoria.aniosMaximos IS NULL OR categoria.aniosMaximos >= :anios)', { anios })
-      .getOne();
-  }
-
-  // Guarda la URL de la foto de carnet que ya fue subida a Supabase
-  // Storage. Este servicio NO sabe nada de cómo se subió el archivo
-  // (esa responsabilidad es 100% de AlmacenamientoService) — solo
-  // actualiza la columna correspondiente.
-  async actualizarFotoCarnet(idSocio: string, nuevaUrl: string): Promise<Socio> {
-    const socio = await this.buscarPorId(idSocio);
-    socio.fotoCarnetUrl = nuevaUrl;
-    return this.repositorioSocios.save(socio);
-  }
-
-  // Arma toda la información del carnet digital de un socio: sus
-  // datos básicos, la antigüedad y categoría CALCULADAS AL MOMENTO
-  // (no depende de que alguien haya "recalculado" antes, siempre está
-  // al día), y el código de barras único para ese socio.
-  //
-  // Importante: esto NO escribe en la base de datos (es una consulta
-  // de solo lectura), así que se puede llamar tantas veces como haga
-  // falta sin generar carga extra ni afectar la auditoría.
-  async obtenerCarnet(idInterno: string) {
-    const socio = await this.buscarPorId(idInterno);
-    const antiguedadAnios = socio.calcularAntiguedadEnAnios();
-
-    // La categoría "en vivo" puede diferir de la guardada en la base
-    // si pasó tiempo desde el último recálculo (ej: un socio cumplió
-    // años de antigüedad hoy). Para el carnet siempre mostramos la
-    // categoría real y actualizada, calculándola acá mismo.
-    const categoriaActual = await this.buscarCategoriaPorAnios(antiguedadAnios);
-
-    return {
-      idSocio: socio.idSocio.toString(),
-      nombreCompleto: `${socio.nombre} ${socio.apellido}`,
-      fotoCarnetUrl: socio.fotoCarnetUrl,
-      antiguedadAnios,
-      categoria: categoriaActual?.nombre ?? 'Sin categoría',
-      socioActivo: socio.activo,
-      codigoBarras: generarCodigoBarras(socio.idSocio),
-    };
+  // Mantiene categoria_id al día para los listados del personal.
+  async categoriaPara(fechaAlta: Date, hoy = new Date()) {
+    const nombre = categoriaPorAntiguedad(aniosEntre(fechaAlta, hoy));
+    return this.repositorioCategorias.findOne({ where: { nombre } });
   }
 }

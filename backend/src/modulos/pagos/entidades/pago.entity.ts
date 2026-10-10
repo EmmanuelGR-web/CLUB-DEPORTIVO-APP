@@ -1,70 +1,94 @@
 // =====================================================================
 // pago.entity.ts
 // -----------------------------------------------------------------------
-// Representa la tabla "pagos": cada pago (o intento de pago) que un
-// socio hace contra una cuota específica. La restricción UNIQUE en
-// la base de datos (socio_id + cuota_id) impide que un mismo socio
-// pague dos veces la misma cuota por error.
+// Tabla "pagos". Cada fila es un pago informado por el socio (o
+// debitado de su tarjeta) para un período "AAAA-MM". Mientras el
+// personal no lo revisa queda 'pendiente' ("En revisión" en pantalla).
+// Un socio puede tener un solo pago vivo por período; si se lo
+// rechazan, puede informarlo de nuevo.
 // =====================================================================
 
-import {
-  Column,
-  CreateDateColumn,
-  Entity,
-  JoinColumn,
-  ManyToOne,
-  PrimaryGeneratedColumn,
-  UpdateDateColumn,
-} from 'typeorm';
+import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
 import { Socio } from '../../socios/entidades/socio.entity';
-import { Cuota } from './cuota.entity';
-import { MedioPago } from './medio-pago.enum';
 import { EstadoPago } from './estado-pago.enum';
+
+export interface VerificacionIA {
+  leido: boolean;
+  esComprobante?: boolean;
+  monto?: number | null;
+  fecha?: string;
+  numeroOperacion?: string;
+  origen?: string;
+  destino?: string;
+  observaciones?: string;
+  montoEsperado?: number;
+  coincideMonto?: boolean;
+  coincideFecha?: boolean;
+  motivo?: string;
+}
 
 @Entity('pagos')
 export class Pago {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @ManyToOne(() => Socio, { eager: true, nullable: false })
+  @ManyToOne(() => Socio, { nullable: false, onDelete: 'RESTRICT' })
   @JoinColumn({ name: 'socio_id' })
   socio: Socio;
 
-  @ManyToOne(() => Cuota, { eager: true, nullable: false })
-  @JoinColumn({ name: 'cuota_id' })
-  cuota: Cuota;
+  @Column({ name: 'socio_id' })
+  socioId: string;
+
+  @Column({ length: 7 })
+  periodo: string;
+
+  @Column({ length: 40, default: 'Cuota mensual' })
+  concepto: string;
+
+  @Column({ type: 'numeric', precision: 12, scale: 2 })
+  base: string;
+
+  @Column({ type: 'numeric', precision: 12, scale: 2, default: 0 })
+  recargo: string;
+
+  @Column({ name: 'dias_demora', type: 'int', default: 0 })
+  diasDemora: number;
 
   @Column({ type: 'numeric', precision: 12, scale: 2 })
   monto: string;
 
-  @Column({ name: 'medio_pago', type: 'enum', enum: MedioPago })
-  medioPago: MedioPago;
+  @Column({ name: 'medio_pago', length: 30 })
+  medioPago: string;
 
   @Column({ type: 'enum', enum: EstadoPago, default: EstadoPago.PENDIENTE })
   estado: EstadoPago;
 
-  @Column({ name: 'comprobante_url', type: 'text', nullable: true })
-  comprobanteUrl: string | null;
+  // Fecha en la que el socio dice que pagó.
+  @Column({ name: 'fecha_pago', type: 'timestamptz' })
+  fechaPago: Date;
 
-  // Número de cupón/comprobante oficial del pago (ej: "REC-2026-3F9A2B7C").
-  // Se completa automáticamente cuando el pago pasa a APROBADO (ver
-  // PagosService.actualizarEstadoPago); mientras está pendiente o
-  // rechazado, queda en null porque todavía no hay nada que emitir.
+  @Column({ name: 'informado_en', type: 'timestamptz', default: () => 'now()' })
+  informadoEn: Date;
+
+  @Column({ name: 'comprobante_id', type: 'uuid', nullable: true })
+  comprobanteId: string | null;
+
+  @Column({ name: 'verificacion_ia', type: 'jsonb', nullable: true })
+  verificacionIA: VerificacionIA | null;
+
   @Column({ name: 'numero_comprobante', type: 'varchar', length: 30, unique: true, nullable: true })
   numeroComprobante: string | null;
 
-  // Nota administrativa opcional: por qué se rechazó un pago, o por
-  // qué se corrigió un estado que estaba mal cargado. Queda como
-  // constancia visible para el socio y para auditoría interna.
+  // Motivo del rechazo o comentario del personal.
   @Column({ type: 'text', nullable: true })
   observacion: string | null;
 
-  @CreateDateColumn({ name: 'fecha_pago' })
-  fechaPago: Date;
+  @Column({ name: 'resuelto_por', type: 'varchar', length: 120, nullable: true })
+  resueltoPor: string | null;
 
-  // Distinta de fechaPago (que es de creación): esta se actualiza
-  // cada vez que se reintenta un pago rechazado o que el club cambia
-  // su estado, para saber cuándo fue el último movimiento real.
+  @Column({ name: 'resuelto_en', type: 'timestamptz', nullable: true })
+  resueltoEn: Date | null;
+
   @UpdateDateColumn({ name: 'actualizado_en' })
   actualizadoEn: Date;
 }
