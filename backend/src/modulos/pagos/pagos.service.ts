@@ -104,13 +104,31 @@ export class PagosService {
   async estadoDeCuenta(socio: Socio, hoy = new Date()): Promise<CuotaEstadoCuenta[]> {
     const periodos = periodosDesdeAlta(socio.fechaAltaComoFecha, hoy);
     const pagos = await this.debitarAutomaticamente(socio, periodos, await this.pagosDeSocio(socio.id), hoy);
+    const comprobantes = await this.archivosDe(pagos.map((p) => p.comprobanteId).filter((id): id is string => Boolean(id)));
+    return this.armarEstado(socio, periodos, pagos, comprobantes, hoy);
+  }
 
-    const idsComprobantes = pagos.map((p) => p.comprobanteId).filter((id): id is string => Boolean(id));
-    const comprobantes = idsComprobantes.length
-      ? await this.repositorioArchivos.find({ where: { id: In(idsComprobantes) } })
-      : [];
-    const comprobantePorId = new Map(comprobantes.map((a) => [a.id, { id: a.id, nombre: a.nombre, tipo: a.tipo, tamanio: a.tamanio }]));
+  // Estado de cuenta de muchos socios con dos consultas en total (para
+  // la facturación y el resumen económico de la administración).
+  async estadosDeCuenta(socios: Socio[], hoy = new Date()) {
+    const ids = socios.map((s) => s.id);
+    let pagos = ids.length ? await this.repositorioPagos.find({ where: { socioId: In(ids) }, order: { informadoEn: 'DESC' } }) : [];
+    const porSocio = (id: string) => pagos.filter((p) => p.socioId === id);
 
+    // Los débitos automáticos que falten se registran juntos.
+    let debito = false;
+    for (const socio of socios) {
+      const antes = porSocio(socio.id);
+      const despues = await this.debitarAutomaticamente(socio, periodosDesdeAlta(socio.fechaAltaComoFecha, hoy), antes, hoy);
+      if (despues !== antes) debito = true;
+    }
+    if (debito) pagos = await this.repositorioPagos.find({ where: { socioId: In(ids) }, order: { informadoEn: 'DESC' } });
+
+    const comprobantes = await this.archivosDe(pagos.map((p) => p.comprobanteId).filter((id): id is string => Boolean(id)));
+    return new Map(socios.map((s) => [s.id, this.armarEstado(s, periodosDesdeAlta(s.fechaAltaComoFecha, hoy), porSocio(s.id), comprobantes, hoy)]));
+  }
+
+  private armarEstado(socio: Socio, periodos: PeriodoCuota[], pagos: Pago[], comprobantePorId: Map<string, ArchivoAdjunto>, hoy: Date): CuotaEstadoCuenta[] {
     return periodos
       .map((p) => {
         // pagos viene ordenado del más nuevo al más viejo.
