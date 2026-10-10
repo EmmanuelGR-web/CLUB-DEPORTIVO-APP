@@ -3,10 +3,9 @@
 // =====================================================================
 // TemaContexto.tsx
 // -----------------------------------------------------------------------
-// Maneja el modo oscuro/claro de toda la app. Guarda la preferencia
-// del usuario en localStorage para que se mantenga entre visitas,
-// y respeta la preferencia del sistema operativo como valor inicial
-// si el usuario todavía no eligió nada explícitamente.
+// Modo claro / oscuro de todo el portal. Usa el modo nativo de
+// Bootstrap (data-bs-theme en <html>) y recuerda la elección. Si el
+// usuario nunca eligió, arranca con la preferencia del sistema.
 // =====================================================================
 
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
@@ -20,35 +19,25 @@ interface TemaContextoValor {
 
 const TemaContexto = createContext<TemaContextoValor | undefined>(undefined);
 
-const CLAVE_ALMACENAMIENTO = 'club-san-martin:tema';
+const CLAVE = 'club:tema';
 
 export function TemaProveedor({ children }: { children: ReactNode }) {
   const [tema, setTema] = useState<Tema>('claro');
-  const [montado, setMontado] = useState(false);
 
-  // Al cargar la página, revisa si el usuario ya había elegido un
-  // tema antes; si no, usa la preferencia del sistema operativo.
+  // El layout ya aplicó el tema antes de pintar; acá solo se lee.
   useEffect(() => {
-    const temaGuardado = localStorage.getItem(CLAVE_ALMACENAMIENTO) as Tema | null;
-    if (temaGuardado) {
-      setTema(temaGuardado);
-    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-      setTema('oscuro');
-    }
-    setMontado(true);
+    setTema(document.documentElement.getAttribute('data-bs-theme') === 'dark' ? 'oscuro' : 'claro');
   }, []);
 
-  useEffect(() => {
-    if (!montado) return;
-    // "dark" lo usa Tailwind (panel admin) y data-bs-theme lo usa
-    // Bootstrap (portal de socios); se actualizan juntos.
-    document.documentElement.classList.toggle('dark', tema === 'oscuro');
-    document.documentElement.setAttribute('data-bs-theme', tema === 'oscuro' ? 'dark' : 'light');
-    localStorage.setItem(CLAVE_ALMACENAMIENTO, tema);
-  }, [tema, montado]);
-
   const alternarTema = () => {
-    setTema((actual) => (actual === 'claro' ? 'oscuro' : 'claro'));
+    const nuevo = tema === 'claro' ? 'oscuro' : 'claro';
+    setTema(nuevo);
+    document.documentElement.setAttribute('data-bs-theme', nuevo === 'oscuro' ? 'dark' : 'light');
+    try {
+      localStorage.setItem(CLAVE, nuevo);
+    } catch {
+      // Sin almacenamiento el tema dura hasta recargar la página.
+    }
   };
 
   return <TemaContexto.Provider value={{ tema, alternarTema }}>{children}</TemaContexto.Provider>;
@@ -56,8 +45,6 @@ export function TemaProveedor({ children }: { children: ReactNode }) {
 
 export function useTema() {
   const contexto = useContext(TemaContexto);
-  if (!contexto) {
-    throw new Error('useTema debe usarse dentro de un TemaProveedor');
-  }
+  if (!contexto) throw new Error('useTema debe usarse dentro de un TemaProveedor');
   return contexto;
 }

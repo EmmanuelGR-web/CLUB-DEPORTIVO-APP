@@ -32,11 +32,7 @@ services:
         generateValue: true
       - key: JWT_EXPIRACION
         value: 1d
-      - key: STORAGE_URL
+      - key: GEMINI_API_KEY
         sync: false
-      - key: STORAGE_CLAVE
-        sync: false
-      - key: STORAGE_BUCKET
-        value: carnets-socios
       - key: CORS_ORIGENES
         sync: false

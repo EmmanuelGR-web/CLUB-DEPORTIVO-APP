@@ -1,6 +1,6 @@
 # Frontend - CLUB DEPORTIVO
 
-Portal de socios construido con **Next.js 14 + React + TypeScript**, con **Bootstrap 5.3 / React Bootstrap** y **SweetAlert2** para el portal del socio (el panel admin todavía usa Tailwind CSS).
+Portal del club construido con **Next.js 14 + React**, **Bootstrap 5.3 / React Bootstrap** y **SweetAlert2**.
 
 ## Instalación
 
