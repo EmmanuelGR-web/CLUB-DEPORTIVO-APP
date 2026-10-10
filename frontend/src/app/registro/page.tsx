@@ -1,137 +1,131 @@
 'use client';
 
-import { useState, FormEvent } from 'react';
+import { FormEvent, useState } from 'react';
 import Link from 'next/link';
+import { Button, Col, Form, Row, Spinner } from 'react-bootstrap';
 import { useAuth } from '@/contextos/AuthContexto';
 import { ErrorApi } from '@/servicios/clienteApi';
-import { CampoTexto } from '@/componentes/ui/CampoTexto';
-import { Boton } from '@/componentes/ui/Boton';
-import { ConmutadorTema } from '@/componentes/ui/ConmutadorTema';
+import { useTituloPagina } from '@/hooks/useTituloPagina';
+import { alertaError, alertaExito } from '@/utilidades/alertas';
+import { PantallaAcceso } from '@/componentes/socio/PantallaAcceso';
+import { CampoContrasena } from '@/componentes/socio/CampoContrasena';
+
+const VACIO = {
+  nombre: '',
+  apellido: '',
+  email: '',
+  contrasena: '',
+  telefono: '',
+  fechaNacimiento: '',
+  ciudad: '',
+  provincia: '',
+  direccion: '',
+};
+
+type Campo = keyof typeof VACIO;
 
 export default function PaginaRegistro() {
+  useTituloPagina('Asociate');
   const { registrarse } = useAuth();
-  const [datos, setDatos] = useState({
-    nombre: '',
-    apellido: '',
-    email: '',
-    contrasena: '',
-    telefono: '',
-    fechaNacimiento: '',
-    ciudad: '',
-    provincia: '',
-    direccion: '',
-  });
-  const [error, setError] = useState('');
+  const [datos, setDatos] = useState(VACIO);
+  const [validado, setValidado] = useState(false);
   const [cargando, setCargando] = useState(false);
 
-  function actualizarCampo(campo: keyof typeof datos, valor: string) {
-    setDatos((anterior) => ({ ...anterior, [campo]: valor }));
-  }
+  const cambiar = (campo: Campo) => (e: { target: { value: string } }) =>
+    setDatos((actual) => ({ ...actual, [campo]: e.target.value }));
 
-  async function manejarEnvio(evento: FormEvent) {
+  async function enviar(evento: FormEvent<HTMLFormElement>) {
     evento.preventDefault();
-    setError('');
+    if (!evento.currentTarget.checkValidity()) {
+      setValidado(true);
+      return;
+    }
+
     setCargando(true);
     try {
-      await registrarse(datos);
+      // Los opcionales vacíos no se mandan, para que el backend no los
+      // valide como fechas o textos inválidos.
+      const completos = Object.fromEntries(Object.entries(datos).filter(([, valor]) => valor.trim() !== '')) as typeof datos;
+      await registrarse({ ...completos, email: datos.email.trim() });
+      alertaExito('Ya podés ver tu carnet digital y pagar tu primera cuota.', `${datos.nombre}, ya sos parte del club`);
     } catch (err) {
-      setError(err instanceof ErrorApi ? err.message : 'No se pudo crear la cuenta');
+      alertaError(err instanceof ErrorApi ? err.message : 'No pudimos crear tu cuenta. Probá de nuevo.', 'No se pudo completar el registro');
     } finally {
       setCargando(false);
     }
   }
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center bg-hueso px-4 py-10 dark:bg-carbon">
-      <div className="absolute right-4 top-4">
-        <ConmutadorTema />
-      </div>
+    <PantallaAcceso titulo="Asociate" bajada="Completá tus datos y en un minuto tenés tu carnet digital." ancho={560}>
+      <Form noValidate validated={validado} onSubmit={enviar}>
+        <Row className="g-3">
+          <Form.Group as={Col} sm={6} controlId="nombre">
+            <Form.Label>Nombre</Form.Label>
+            <Form.Control value={datos.nombre} onChange={cambiar('nombre')} required maxLength={60} autoComplete="given-name" />
+            <Form.Control.Feedback type="invalid">Ingresá tu nombre.</Form.Control.Feedback>
+          </Form.Group>
+          <Form.Group as={Col} sm={6} controlId="apellido">
+            <Form.Label>Apellido</Form.Label>
+            <Form.Control value={datos.apellido} onChange={cambiar('apellido')} required maxLength={60} autoComplete="family-name" />
+            <Form.Control.Feedback type="invalid">Ingresá tu apellido.</Form.Control.Feedback>
+          </Form.Group>
+          <Form.Group as={Col} xs={12} controlId="email">
+            <Form.Label>Email</Form.Label>
+            <Form.Control type="email" value={datos.email} onChange={cambiar('email')} required autoComplete="email" placeholder="nombre@correo.com" />
+            <Form.Control.Feedback type="invalid">Ingresá un email válido.</Form.Control.Feedback>
+          </Form.Group>
+          <Form.Group as={Col} sm={6} controlId="telefono">
+            <Form.Label>Teléfono <span className="opacity-50">(opcional)</span></Form.Label>
+            <Form.Control type="tel" value={datos.telefono} onChange={cambiar('telefono')} pattern="[0-9 +()-]{6,20}" autoComplete="tel" />
+            <Form.Control.Feedback type="invalid">Revisá el número.</Form.Control.Feedback>
+          </Form.Group>
+          <Form.Group as={Col} sm={6} controlId="fechaNacimiento">
+            <Form.Label>Nacimiento <span className="opacity-50">(opcional)</span></Form.Label>
+            <Form.Control type="date" value={datos.fechaNacimiento} onChange={cambiar('fechaNacimiento')} max={new Date().toISOString().slice(0, 10)} />
+          </Form.Group>
+          <Form.Group as={Col} sm={6} controlId="ciudad">
+            <Form.Label>Ciudad <span className="opacity-50">(opcional)</span></Form.Label>
+            <Form.Control value={datos.ciudad} onChange={cambiar('ciudad')} maxLength={80} />
+          </Form.Group>
+          <Form.Group as={Col} sm={6} controlId="provincia">
+            <Form.Label>Provincia <span className="opacity-50">(opcional)</span></Form.Label>
+            <Form.Control value={datos.provincia} onChange={cambiar('provincia')} maxLength={80} />
+          </Form.Group>
+          <Form.Group as={Col} xs={12} controlId="direccion">
+            <Form.Label>Dirección <span className="opacity-50">(opcional)</span></Form.Label>
+            <Form.Control value={datos.direccion} onChange={cambiar('direccion')} maxLength={120} autoComplete="street-address" />
+          </Form.Group>
+          <Form.Group as={Col} xs={12}>
+            <Form.Label htmlFor="contrasena">Contraseña</Form.Label>
+            <CampoContrasena
+              id="contrasena"
+              valor={datos.contrasena}
+              onCambiar={(valor) => setDatos((actual) => ({ ...actual, contrasena: valor }))}
+              autoComplete="new-password"
+              minLength={8}
+              mensajeError="Usá al menos 8 caracteres."
+            />
+            <Form.Text className="text-white-50">Mínimo 8 caracteres.</Form.Text>
+          </Form.Group>
+        </Row>
 
-      <div className="w-full max-w-lg rounded-2xl border border-carbon/10 bg-white p-6 shadow-xl dark:border-white/10 dark:bg-carbon-suave sm:p-8">
-        <div className="mb-8 text-center">
-          <h1 className="font-titulo text-3xl font-bold uppercase tracking-wide">Creá tu cuenta</h1>
-        </div>
-
-        <form onSubmit={manejarEnvio} className="flex flex-col gap-4">
-          <div className="grid grid-cols-2 gap-3">
-            <CampoTexto
-              etiqueta="Nombre"
-              value={datos.nombre}
-              onChange={(e) => actualizarCampo('nombre', e.target.value)}
-              required
-            />
-            <CampoTexto
-              etiqueta="Apellido"
-              value={datos.apellido}
-              onChange={(e) => actualizarCampo('apellido', e.target.value)}
-              required
-            />
-          </div>
-          <CampoTexto
-            etiqueta="Email"
-            type="email"
-            value={datos.email}
-            onChange={(e) => actualizarCampo('email', e.target.value)}
-            required
-            autoComplete="email"
-          />
-          <CampoTexto
-            etiqueta="Teléfono (opcional)"
-            type="tel"
-            value={datos.telefono}
-            onChange={(e) => actualizarCampo('telefono', e.target.value)}
-          />
-          <CampoTexto
-            etiqueta="Fecha de nacimiento (opcional)"
-            type="date"
-            value={datos.fechaNacimiento}
-            onChange={(e) => actualizarCampo('fechaNacimiento', e.target.value)}
-          />
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <CampoTexto
-              etiqueta="Ciudad (opcional)"
-              value={datos.ciudad}
-              onChange={(e) => actualizarCampo('ciudad', e.target.value)}
-            />
-            <CampoTexto
-              etiqueta="Provincia (opcional)"
-              value={datos.provincia}
-              onChange={(e) => actualizarCampo('provincia', e.target.value)}
-            />
-          </div>
-          <CampoTexto
-            etiqueta="Dirección (opcional)"
-            value={datos.direccion}
-            onChange={(e) => actualizarCampo('direccion', e.target.value)}
-          />
-          <CampoTexto
-            etiqueta="Contraseña"
-            type="password"
-            value={datos.contrasena}
-            onChange={(e) => actualizarCampo('contrasena', e.target.value)}
-            required
-            minLength={8}
-            autoComplete="new-password"
-          />
-
-          {error && (
-            <p role="alert" className="text-sm text-red-600 dark:text-red-400">
-              {error}
-            </p>
+        <Button type="submit" variant="primary" size="lg" className="rounded-pill w-100 mt-4 fw-semibold" disabled={cargando}>
+          {cargando ? (
+            <>
+              <Spinner size="sm" className="me-2" /> Creando tu cuenta…
+            </>
+          ) : (
+            'Crear mi cuenta'
           )}
+        </Button>
+      </Form>
 
-          <Boton type="submit" cargando={cargando} className="mt-2 w-full">
-            Crear cuenta
-          </Boton>
-        </form>
-
-        <p className="mt-6 text-center font-cuerpo text-sm text-carbon/60 dark:text-hueso/60">
-          ¿Ya sos socio?{' '}
-          <Link href="/login" className="font-medium text-rojo-club dark:text-dorado">
-            Iniciá sesión
-          </Link>
-        </p>
-      </div>
-    </main>
+      <p className="text-center text-white-50 small mt-4 mb-0">
+        ¿Ya sos socio?{' '}
+        <Link href="/login" className="fw-semibold text-warning text-decoration-none">
+          Ingresá
+        </Link>
+      </p>
+    </PantallaAcceso>
   );
 }

@@ -34,6 +34,7 @@ interface AuthContextoValor {
     direccion?: string;
   }) => Promise<void>;
   cerrarSesion: () => void;
+  actualizarUsuario: (cambios: Partial<UsuarioSesion>) => void;
 }
 
 const AuthContexto = createContext<AuthContextoValor | undefined>(undefined);
@@ -82,6 +83,17 @@ export function AuthProveedor({ children }: { children: ReactNode }) {
     router.push('/mi-carnet');
   }
 
+  // Cuando el socio edita su nombre en "Mi cuenta", la barra lateral
+  // tiene que reflejarlo sin volver a iniciar sesión.
+  function actualizarUsuario(cambios: Partial<UsuarioSesion>) {
+    setUsuario((actual) => {
+      if (!actual) return actual;
+      const nuevo = { ...actual, ...cambios };
+      localStorage.setItem(CLAVE_USUARIO, JSON.stringify(nuevo));
+      return nuevo;
+    });
+  }
+
   function cerrarSesion() {
     localStorage.removeItem(CLAVE_TOKEN);
     localStorage.removeItem(CLAVE_USUARIO);
@@ -90,7 +102,7 @@ export function AuthProveedor({ children }: { children: ReactNode }) {
   }
 
   return (
-    <AuthContexto.Provider value={{ usuario, cargando, iniciarSesion, registrarse, cerrarSesion }}>
+    <AuthContexto.Provider value={{ usuario, cargando, iniciarSesion, registrarse, cerrarSesion, actualizarUsuario }}>
       {children}
     </AuthContexto.Provider>
   );
