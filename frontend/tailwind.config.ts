@@ -12,7 +12,11 @@ import type { Config } from 'tailwindcss';
 
 const config: Config = {
   darkMode: 'class', // el modo oscuro se activa agregando la clase "dark" al <html>
-  content: ['./src/**/*.{js,ts,jsx,tsx,mdx}'],
+  // Solo el panel de administración sigue con Tailwind. El portal de
+  // socios usa Bootstrap, así que se excluye para que las clases de uno
+  // y otro (border, shadow, rounded...) no se pisen.
+  content: ['./src/app/**/admin/**/*.{ts,tsx}', './src/componentes/ui/**/*.{ts,tsx}'],
+  corePlugins: { preflight: false },
   theme: {
     extend: {
       colors: {
