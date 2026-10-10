@@ -1,239 +1,120 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { Comprobante, EstadoCuentaItem } from '@/tipos';
+import { useMemo, useState } from 'react';
+import { Col, Form, Row } from 'react-bootstrap';
+import { Comprobante } from '@/tipos';
 import { pagosServicio } from '@/servicios/pagosServicio';
 import { ErrorApi } from '@/servicios/clienteApi';
-import { Tarjeta } from '@/componentes/ui/Tarjeta';
-import { Boton } from '@/componentes/ui/Boton';
+import { useEstadoCuenta } from '@/hooks/useEstadoCuenta';
+import { useTituloPagina } from '@/hooks/useTituloPagina';
+import { alertaError } from '@/utilidades/alertas';
+import { formatearPesos } from '@/utilidades/formato';
+import { EncabezadoPagina } from '@/componentes/socio/EncabezadoPagina';
+import { Seccion } from '@/componentes/socio/Seccion';
+import { Cargando } from '@/componentes/socio/Cargando';
+import { InformarPago } from '@/componentes/socio/InformarPago';
+import { ModalComprobante } from '@/componentes/socio/ModalComprobante';
+import { CampoOrden, TablaCuotas } from '@/componentes/socio/TablaCuotas';
 
-const ETIQUETA_MEDIO_PAGO: Record<Comprobante['medioPago'], string> = {
-  efectivo: 'Efectivo',
-  transferencia: 'Transferencia',
-  debito: 'Débito',
-  credito: 'Crédito',
-};
+const FILTROS = [
+  { valor: 'todas', etiqueta: 'Todas' },
+  { valor: 'aprobado', etiqueta: 'Pagadas' },
+  { valor: 'pendiente', etiqueta: 'En revisión' },
+  { valor: 'sin_pagar', etiqueta: 'Pendientes' },
+  { valor: 'rechazado', etiqueta: 'Rechazadas' },
+] as const;
 
-const ETIQUETA_ESTADO: Record<EstadoCuentaItem['estadoPago'], { texto: string; clase: string }> = {
-  aprobado: {
-    texto: 'Pagada',
-    clase: 'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300',
-  },
-  pendiente: {
-    texto: 'En revisión',
-    clase: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/40 dark:text-yellow-300',
-  },
-  rechazado: {
-    texto: 'Rechazada',
-    clase: 'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300',
-  },
-  sin_pagar: {
-    texto: 'Sin pagar',
-    clase: 'bg-carbon/10 text-carbon/70 dark:bg-white/10 dark:text-hueso/70',
-  },
-};
+type Filtro = (typeof FILTROS)[number]['valor'];
 
-const MEDIOS_PAGO = [
-  { valor: 'efectivo', etiqueta: 'Efectivo' },
-  { valor: 'transferencia', etiqueta: 'Transferencia' },
-  { valor: 'debito', etiqueta: 'Débito' },
-  { valor: 'credito', etiqueta: 'Crédito' },
-];
-
-function formatearMonto(monto: string): string {
-  return new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS' }).format(Number(monto));
+function Indicador({ etiqueta, valor, detalle }: { etiqueta: string; valor: string; detalle?: string }) {
+  return (
+    <div className="superficie indicador p-3 h-100">
+      <div className="etiqueta-mini mb-2">{etiqueta}</div>
+      <div className="indicador-valor">{valor}</div>
+      {detalle && <small className="text-body-secondary">{detalle}</small>}
+    </div>
+  );
 }
 
 export default function PaginaPagos() {
-  const [estadoCuenta, setEstadoCuenta] = useState<EstadoCuentaItem[]>([]);
-  const [cargando, setCargando] = useState(true);
-  const [error, setError] = useState('');
-  const [mensaje, setMensaje] = useState('');
-  const [pagandoCuotaId, setPagandoCuotaId] = useState<string | null>(null);
-  const [comprobanteAbierto, setComprobanteAbierto] = useState<Comprobante | null>(null);
-  const [cargandoComprobante, setCargandoComprobante] = useState(false);
+  useTituloPagina('Cuota social');
+  const { cuotas, resumen, cargando, error, recargar } = useEstadoCuenta();
+  const [filtro, setFiltro] = useState<Filtro>('todas');
+  const [orden, setOrden] = useState<{ campo: CampoOrden; asc: boolean }>({ campo: 'periodo', asc: false });
+  const [comprobante, setComprobante] = useState<Comprobante | null>(null);
+  const [abriendo, setAbriendo] = useState<string | null>(null);
 
-  async function cargarEstadoCuenta() {
-    try {
-      const datos = await pagosServicio.obtenerMiEstadoDeCuenta();
-      setEstadoCuenta(datos);
-    } catch (err) {
-      setError(err instanceof ErrorApi ? err.message : 'No se pudo cargar el estado de cuenta');
-    } finally {
-      setCargando(false);
-    }
-  }
+  const visibles = useMemo(() => {
+    const filtradas = filtro === 'todas' ? cuotas : cuotas.filter((c) => c.estadoPago === filtro);
+    return [...filtradas].sort((a, b) => {
+      const diferencia =
+        orden.campo === 'monto' ? Number(a.monto) - Number(b.monto) : a[orden.campo].localeCompare(b[orden.campo]);
+      return orden.asc ? diferencia : -diferencia;
+    });
+  }, [cuotas, filtro, orden]);
 
-  useEffect(() => {
-    cargarEstadoCuenta();
-  }, []);
-
-  async function pagarCuota(cuotaId: string, medioPago: string) {
-    setPagandoCuotaId(cuotaId);
-    setError('');
-    setMensaje('');
-    try {
-      await pagosServicio.registrarPago({ cuotaId, medioPago });
-      setMensaje('Tu pago quedó registrado. El club lo va a confirmar en breve.');
-      await cargarEstadoCuenta();
-    } catch (err) {
-      setError(err instanceof ErrorApi ? err.message : 'No se pudo registrar el pago');
-    } finally {
-      setPagandoCuotaId(null);
-    }
+  function ordenar(campo: CampoOrden) {
+    setOrden((actual) => ({ campo, asc: actual.campo === campo ? !actual.asc : true }));
   }
 
   async function verComprobante(pagoId: string) {
-    setError('');
-    setCargandoComprobante(true);
+    setAbriendo(pagoId);
     try {
-      const datos = await pagosServicio.obtenerComprobante(pagoId);
-      setComprobanteAbierto(datos);
+      setComprobante(await pagosServicio.obtenerComprobante(pagoId));
     } catch (err) {
-      setError(err instanceof ErrorApi ? err.message : 'No se pudo obtener el comprobante');
+      alertaError(err instanceof ErrorApi ? err.message : 'No se pudo obtener el comprobante');
     } finally {
-      setCargandoComprobante(false);
+      setAbriendo(null);
     }
   }
 
   return (
-    <div className="mx-auto max-w-2xl">
-      <h1 className="mb-1 font-titulo text-3xl font-bold uppercase tracking-wide">Cuota social</h1>
-      <p className="mb-8 font-cuerpo text-sm text-carbon/60 dark:text-hueso/60">
-        Tus cuotas pagadas y pendientes
-      </p>
+    <>
+      <EncabezadoPagina titulo="Cuota social" bajada="Informá tus pagos y descargá los comprobantes aprobados." />
 
-      {cargando && <p className="font-cuerpo text-sm text-carbon/60 dark:text-hueso/60">Cargando…</p>}
+      {cargando || error ? (
+        <Cargando texto="Cargando tu estado de cuenta…" error={error} onReintentar={recargar} />
+      ) : (
+        <>
+          <Row className="g-3 mb-4">
+            <Col xs={6} xl={3}>
+              <Indicador etiqueta="Saldo adeudado" valor={formatearPesos(resumen.totalAdeudado)} detalle={resumen.adeudadas ? `${resumen.adeudadas} cuota${resumen.adeudadas > 1 ? 's' : ''}` : 'Estás al día'} />
+            </Col>
+            <Col xs={6} xl={3}>
+              <Indicador etiqueta="Cuotas pagadas" valor={String(resumen.pagadas)} />
+            </Col>
+            <Col xs={6} xl={3}>
+              <Indicador etiqueta="En revisión" valor={String(resumen.enRevision)} detalle="Esperando aprobación" />
+            </Col>
+            <Col xs={6} xl={3}>
+              <Indicador etiqueta="Total de cuotas" valor={String(cuotas.length)} />
+            </Col>
+          </Row>
 
-      {error && (
-        <p role="alert" className="mb-4 font-cuerpo text-sm text-red-600 dark:text-red-400">
-          {error}
-        </p>
-      )}
-      {mensaje && (
-        <p role="status" className="mb-4 font-cuerpo text-sm text-green-700 dark:text-green-400">
-          {mensaje}
-        </p>
-      )}
+          {resumen.proxima && <InformarPago key={resumen.proxima.cuotaId + resumen.proxima.estadoPago} cuota={resumen.proxima} onInformado={recargar} />}
 
-      {!cargando && estadoCuenta.length === 0 && (
-        <Tarjeta className="text-center">
-          <p className="font-cuerpo text-sm text-carbon/60 dark:text-hueso/60">
-            Todavía no hay cuotas cargadas por el club.
-          </p>
-        </Tarjeta>
-      )}
-
-      <div className="flex flex-col gap-3">
-        {estadoCuenta.map((item) => {
-          const estilo = ETIQUETA_ESTADO[item.estadoPago];
-          const puedePagar = item.estadoPago === 'sin_pagar' || item.estadoPago === 'rechazado';
-
-          return (
-            <Tarjeta key={item.cuotaId} className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
-              <div>
-                <p className="font-titulo text-lg font-semibold">Cuota {item.periodo}</p>
-                <p className="font-cuerpo text-sm text-carbon/60 dark:text-hueso/60">
-                  Vence el {new Date(item.fechaVencimiento).toLocaleDateString('es-AR')} ·{' '}
-                  {formatearMonto(item.monto)}
-                </p>
-              </div>
-
-              <div className="flex w-full flex-wrap items-center justify-between gap-3 sm:w-auto sm:justify-end">
-                <span className={`rounded-full px-3 py-1 font-cuerpo text-xs font-medium ${estilo.clase}`}>
-                  {estilo.texto}
-                </span>
-
-                {item.estadoPago === 'aprobado' && item.pagoId && (
-                  <Boton
-                    variante="fantasma"
-                    className="!px-3 !py-1.5 text-xs"
-                    disabled={cargandoComprobante}
-                    onClick={() => verComprobante(item.pagoId as string)}
-                  >
-                    Ver comprobante
-                  </Boton>
-                )}
-
-                {puedePagar && (
-                  <select
-                    className="rounded-lg border border-carbon/15 bg-white px-2 py-1.5 font-cuerpo text-sm text-carbon dark:border-white/15 dark:bg-carbon dark:text-hueso"
-                    defaultValue=""
-                    disabled={pagandoCuotaId === item.cuotaId}
-                    onChange={(e) => {
-                      if (e.target.value) pagarCuota(item.cuotaId, e.target.value);
-                    }}
-                  >
-                    <option value="" disabled>
-                      Pagar con…
-                    </option>
-                    {MEDIOS_PAGO.map((medio) => (
-                      <option key={medio.valor} value={medio.valor}>
-                        {medio.etiqueta}
-                      </option>
-                    ))}
-                  </select>
-                )}
-              </div>
-            </Tarjeta>
-          );
-        })}
-      </div>
-
-      {comprobanteAbierto && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
-          onClick={() => setComprobanteAbierto(null)}
-        >
-          <Tarjeta
-            className="w-full max-w-sm"
-            onClick={(e) => e.stopPropagation()}
+          <Seccion
+            titulo="Historial de cuotas"
+            acciones={
+              <Form.Select size="sm" className="rounded-pill w-auto" value={filtro} onChange={(e) => setFiltro(e.target.value as Filtro)} aria-label="Filtrar por estado">
+                {FILTROS.map((f) => (
+                  <option key={f.valor} value={f.valor}>
+                    {f.etiqueta}
+                  </option>
+                ))}
+              </Form.Select>
+            }
           >
-            <p className="text-center font-titulo text-xs uppercase tracking-widest text-carbon/50 dark:text-hueso/50">
-              Comprobante de pago
-            </p>
-            <p className="mb-4 text-center font-titulo text-lg font-bold">
-              {comprobanteAbierto.numeroComprobante}
-            </p>
-
-            <dl className="flex flex-col gap-2 font-cuerpo text-sm">
-              <div className="flex justify-between">
-                <dt className="text-carbon/60 dark:text-hueso/60">Socio</dt>
-                <dd>{comprobanteAbierto.socio.nombreCompleto}</dd>
-              </div>
-              <div className="flex justify-between">
-                <dt className="text-carbon/60 dark:text-hueso/60">N° de socio</dt>
-                <dd>{comprobanteAbierto.socio.idSocio}</dd>
-              </div>
-              <div className="flex justify-between">
-                <dt className="text-carbon/60 dark:text-hueso/60">Cuota</dt>
-                <dd>{comprobanteAbierto.cuota.periodo}</dd>
-              </div>
-              <div className="flex justify-between">
-                <dt className="text-carbon/60 dark:text-hueso/60">Medio de pago</dt>
-                <dd>{ETIQUETA_MEDIO_PAGO[comprobanteAbierto.medioPago]}</dd>
-              </div>
-              <div className="flex justify-between">
-                <dt className="text-carbon/60 dark:text-hueso/60">Fecha</dt>
-                <dd>{new Date(comprobanteAbierto.fechaEmision).toLocaleDateString('es-AR')}</dd>
-              </div>
-              <div className="mt-2 flex justify-between border-t border-carbon/10 pt-2 font-semibold dark:border-white/10">
-                <dt>Monto</dt>
-                <dd>{formatearMonto(comprobanteAbierto.monto)}</dd>
-              </div>
-            </dl>
-
-            <div className="mt-6 flex gap-2">
-              <Boton variante="secundario" className="flex-1" onClick={() => window.print()}>
-                Imprimir
-              </Boton>
-              <Boton className="flex-1" onClick={() => setComprobanteAbierto(null)}>
-                Cerrar
-              </Boton>
-            </div>
-          </Tarjeta>
-        </div>
+            {cuotas.length === 0 ? (
+              <p className="text-body-secondary text-center py-4 mb-0">Todavía no hay cuotas cargadas por el club.</p>
+            ) : (
+              <TablaCuotas cuotas={visibles} orden={orden} onOrdenar={ordenar} onVerComprobante={verComprobante} abriendoComprobante={abriendo} />
+            )}
+          </Seccion>
+        </>
       )}
-    </div>
+
+      <ModalComprobante comprobante={comprobante} onCerrar={() => setComprobante(null)} />
+    </>
   );
 }
