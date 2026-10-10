@@ -20,12 +20,21 @@ async function iniciarAplicacion() {
 
   // Traemos el servicio de configuración para leer variables del .env
   const configuracion = app.get(ConfigService);
-  const puerto = configuracion.get<number>('PUERTO') ?? 3000;
+  // Render (y otros hostings) asignan el puerto en PORT.
+  const puerto = configuracion.get<number>('PUERTO') ?? configuracion.get<number>('PORT') ?? 3000;
 
   // Habilitamos CORS: sin esto, el navegador bloquea las peticiones
   // que vengan desde el frontend (que corre en otro dominio/puerto).
+  // En producción CORS_ORIGENES lista los dominios permitidos separados
+  // por coma (ej: https://club-deportivo.vercel.app). Sin la variable
+  // se acepta cualquier origen, cómodo para desarrollo local.
+  const origenes = configuracion
+    .get<string>('CORS_ORIGENES', '')
+    .split(',')
+    .map((origen) => origen.trim())
+    .filter(Boolean);
   app.enableCors({
-    origin: true, // en producción conviene restringir esto al dominio real del frontend
+    origin: origenes.length > 0 ? origenes : true,
     credentials: true,
   });
 
