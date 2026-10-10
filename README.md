@@ -159,8 +159,30 @@ Los mensajes de commit siguen la [guía de commits](docs/guia-commits.md).
 - **Backend:** servicio web en Render, con raíz en `backend/`, comando de build `npm install && npm run build` y de inicio `npm run start:prod`. Las variables del backend se cargan en *Environment*.
 - **Frontend:** proyecto de Vercel con raíz en `frontend/` y la variable `NEXT_PUBLIC_API_URL` apuntando a la URL de Render.
 - En Render, `CORS_ORIGENES` tiene la URL de Vercel para que solo el sitio publicado pueda usar la API.
-- Mientras se prueba, Render y Vercel publican la rama `dev`; cuando quede estable pasan a `main`.
-- En el plan gratis Render apaga el backend tras 15 minutos sin uso: la primera carga después de eso tarda unos 50 segundos.
+- **Producción sale de `main`:** Render publica solo esa rama y en Vercel es la rama de *Production*. Los push a `dev` generan en Vercel una vista previa con dirección propia, que no reemplaza al sitio publicado.
+- **Dirección para compartir:** [club-deportivo-app.vercel.app](https://club-deportivo-app.vercel.app/). Abre en el ingreso y es la misma en cada publicación. La URL de Render es solo la API y las de Vercel con sufijo (`club-deportivo-app-xxxx.vercel.app`) son vistas previas.
+- **Varios usuarios a la vez:** el backend atiende todas las sesiones en paralelo, cada una con su token. El plan gratis de Render (512 MB) alcanza para demostraciones y pruebas con grupos chicos.
+
+### Backend siempre despierto
+
+En el plan gratis, Render apaga el backend después de 15 minutos sin pedidos, y el primero que entra después espera unos 50 segundos a que arranque. Por su lado, Supabase pausa el proyecto si la base pasa días sin uso. Para evitar las dos cosas, un servicio externo consulta la API cada 10 minutos:
+
+| Dato | Valor |
+|---|---|
+| Servicio | [cron-job.org](https://cron-job.org) (gratuito) |
+| Tarea | `Club Deportivo despierto` |
+| Dirección | `https://club-deportivo-api-4w10.onrender.com/noticias` |
+| Frecuencia | Cada 10 minutos |
+| Respuesta esperada | `200 OK` |
+
+Se usa `/noticias` porque es pública, no necesita sesión y lee la base, así que mantiene activos a la vez a Render y a Supabase.
+
+**Cómo armarlo de nuevo:**
+1. Crear una cuenta en cron-job.org y entrar a **Cronjobs → Crear cronjob**.
+2. Cargar el título, la dirección de la tabla y la frecuencia **Every 10 minutes**, y guardar.
+3. En **Historial** confirmar que las ejecuciones devuelvan `200`. La primera puede dar *timeout* si agarra al servidor dormido.
+
+Un servicio despierto todo el mes usa unas 744 horas, dentro de las 750 gratis de Render. Para volver al comportamiento original alcanza con pausar la tarea en cron-job.org.
 
 ## Estructura del repositorio
 
