@@ -59,8 +59,8 @@ export class NoticiasController {
   @Post()
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(Rol.ADMIN_PRINCIPAL)
-  @ApiOperation({ summary: '[Administración principal] Publica una noticia' })
+  @Roles(Rol.ADMINISTRATIVO, Rol.ADMIN_PRINCIPAL)
+  @ApiOperation({ summary: '[Personal del club] Publica una noticia' })
   crear(@Body() datos: NoticiaDto) {
     return this.noticias.crear(datos);
   }
@@ -68,7 +68,7 @@ export class NoticiasController {
   @Patch(':id')
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(Rol.ADMIN_PRINCIPAL)
+  @Roles(Rol.ADMINISTRATIVO, Rol.ADMIN_PRINCIPAL)
   modificar(@Param('id', ParseUUIDPipe) id: string, @Body() datos: NoticiaDto) {
     return this.noticias.modificar(id, datos);
   }
@@ -77,7 +77,7 @@ export class NoticiasController {
   @HttpCode(204)
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(Rol.ADMIN_PRINCIPAL)
+  @Roles(Rol.ADMINISTRATIVO, Rol.ADMIN_PRINCIPAL)
   async borrar(@Param('id', ParseUUIDPipe) id: string) {
     await this.noticias.borrar(id);
   }
