@@ -41,7 +41,6 @@ export function HistorialCambios({ registros }) {
 
   return (
     <Tarjeta titulo="Historial de cambios" className="mt-4">
-      <p className="small text-body-secondary">Cada modificación queda registrada con fecha y hora como constancia para administración.</p>
       <ul className="list-unstyled mb-0">
         {registros.map((registro) => (
           <li key={registro.id} className="border-top py-2 small">

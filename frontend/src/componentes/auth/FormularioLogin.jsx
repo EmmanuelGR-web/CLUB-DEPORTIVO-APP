@@ -112,7 +112,6 @@ function FormularioLogin() {
             'Ingresar'
           )}
         </Button>
-        {ingresando && <p className="small text-white-50 text-center mt-2 mb-0">Si el servidor estaba en reposo, la primera vez puede tardar unos segundos.</p>}
 
         <p className="text-center small mt-4 mb-0">
           ¿No tenés tu cuenta club?{' '}
