@@ -25,6 +25,7 @@ import { IaModule } from './modulos/ia/ia.module';
 import { GestionModule } from './modulos/gestion/gestion.module';
 import { AdminModule } from './modulos/admin/admin.module';
 import { NoticiasModule } from './modulos/noticias/noticias.module';
+import { BeneficiosModule } from './modulos/beneficios/beneficios.module';
 
 @Module({
   imports: [
@@ -49,6 +50,7 @@ import { NoticiasModule } from './modulos/noticias/noticias.module';
     GestionModule,
     AdminModule,
     NoticiasModule,
+    BeneficiosModule,
 
     // A medida que avancemos con las siguientes fases, acá se van
     // agregando: DisciplinasModule, ClubInfoModule, BeneficiosModule,
