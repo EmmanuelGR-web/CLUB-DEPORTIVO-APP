@@ -1,0 +1,42 @@
+# Configuración del backend en Render (Blueprint).
+# Render lee este archivo al conectar el repositorio. Las variables
+# marcadas con sync: false se completan a mano en el panel de Render.
+services:
+  - type: web
+    name: club-deportivo-api
+    runtime: node
+    plan: free
+    rootDir: backend
+    branch: main
+    buildCommand: npm install && npm run build
+    startCommand: npm run start:prod
+    healthCheckPath: /documentacion
+    envVars:
+      - key: NODE_VERSION
+        value: 20
+      - key: ENTORNO
+        value: produccion
+      - key: DB_SSL
+        value: "true"
+      - key: DB_HOST
+        sync: false
+      - key: DB_PUERTO
+        sync: false
+      - key: DB_USUARIO
+        sync: false
+      - key: DB_CONTRASENA
+        sync: false
+      - key: DB_NOMBRE
+        sync: false
+      - key: JWT_SECRETO
+        generateValue: true
+      - key: JWT_EXPIRACION
+        value: 1d
+      - key: STORAGE_URL
+        sync: false
+      - key: STORAGE_CLAVE
+        sync: false
+      - key: STORAGE_BUCKET
+        value: carnets-socios
+      - key: CORS_ORIGENES
+        sync: false
