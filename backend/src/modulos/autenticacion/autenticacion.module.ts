@@ -16,12 +16,14 @@ import { JwtStrategy } from './estrategias/jwt.strategy';
 import { SociosModule } from '../socios/socios.module';
 import { RegistroCambiosModule } from '../registro-cambios/registro-cambios.module';
 import { MensajesModule } from '../mensajes/mensajes.module';
+import { PersonalModule } from '../personal/personal.module';
 
 @Module({
   imports: [
     SociosModule, // necesitamos buscar socios por email para el login
     RegistroCambiosModule,
     MensajesModule,
+    PersonalModule,
     PassportModule,
     JwtModule.registerAsync({
       imports: [ConfigModule],

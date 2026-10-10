@@ -6,7 +6,7 @@
 // la administración principal a /admin.
 // =====================================================================
 
-import { BadRequestException, Injectable, UnauthorizedException } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { DataSource } from 'typeorm';
 import * as bcrypt from 'bcrypt';
@@ -16,6 +16,7 @@ import { RegistrarSocioDto } from '../socios/dto/registrar-socio.dto';
 import { RegistroCambiosService } from '../registro-cambios/registro-cambios.service';
 import { MensajesService } from '../mensajes/mensajes.service';
 import { Rol } from '../../comun/enums/rol.enum';
+import { PersonalService, ausenciaVigente, textoAusencia } from '../personal/personal.service';
 import { CORREO_ADMINISTRACION, correoInstitucional } from '../../comun/utilidades/correos.util';
 
 const PANEL_POR_ROL: Record<Rol, { ruta: string; rolTexto: string }> = {
@@ -48,6 +49,7 @@ export class AutenticacionService {
     private readonly registro: RegistroCambiosService,
     private readonly mensajes: MensajesService,
     private readonly fuente: DataSource,
+    private readonly personal: PersonalService,
   ) {}
 
   usuarioDeSesion(socio: Socio) {
@@ -69,6 +71,12 @@ export class AutenticacionService {
       throw new UnauthorizedException('Revisá el correo y la contraseña e intentá de nuevo.');
     }
     if (!socio.activo) throw new UnauthorizedException('La cuenta está dada de baja. Comunicate con la secretaría del club.');
+    // Quien está de vacaciones, con licencia o suspendido no entra al portal.
+    if (socio.rol === Rol.ADMINISTRATIVO) {
+      const persona = await this.personal.deUsuario(socio.id);
+      const ausencia = persona && ausenciaVigente(persona);
+      if (ausencia) throw new ForbiddenException({ message: textoAusencia(ausencia), bloqueo: ausencia });
+    }
 
     return {
       tokenAcceso: this.jwtService.sign({ sub: socio.id, email: socio.email, rol: socio.rol }),
@@ -117,7 +125,7 @@ export class AutenticacionService {
       );
 
       await this.mensajes.crearHilo(
-        nuevo.id,
+        { socioId: nuevo.id },
         'socio',
         {
           autorId: null,

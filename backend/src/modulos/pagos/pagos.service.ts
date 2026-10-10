@@ -11,7 +11,7 @@
 
 import { BadRequestException, ConflictException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DataSource, In, Repository } from 'typeorm';
+import { DataSource, In, IsNull, Not, Repository } from 'typeorm';
 import { Pago, VerificacionIA } from './entidades/pago.entity';
 import { EstadoPago } from './entidades/estado-pago.enum';
 import { Socio } from '../socios/entidades/socio.entity';
@@ -164,6 +164,34 @@ export class PagosService {
         } satisfies CuotaEstadoCuenta;
       })
       .reverse();
+  }
+
+  // Pagos que el socio informó con comprobante, para que el personal los revise.
+  informadosConComprobante() {
+    return this.repositorioPagos.find({ where: { comprobanteId: Not(IsNull()) }, order: { informadoEn: 'DESC' } });
+  }
+
+  async archivosDe(ids: string[]) {
+    if (ids.length === 0) return new Map<string, ArchivoAdjunto>();
+    const archivos = await this.repositorioArchivos.find({ where: { id: In(ids) } });
+    return new Map(archivos.map((a) => [a.id, { id: a.id, nombre: a.nombre, tipo: a.tipo, tamanio: a.tamanio }]));
+  }
+
+  async buscarPago(id: string) {
+    const pago = await this.repositorioPagos.findOne({ where: { id } });
+    if (!pago) throw new BadRequestException('El pago no existe.');
+    return pago;
+  }
+
+  // Al aprobar se genera el número de comprobante del club.
+  async resolver(pago: Pago, aprobado: boolean, motivo: string, firma: string) {
+    if (pago.estado !== EstadoPago.PENDIENTE) throw new ConflictException('Ese pago ya fue revisado.');
+    pago.estado = aprobado ? EstadoPago.APROBADO : EstadoPago.RECHAZADO;
+    pago.observacion = motivo || null;
+    pago.resueltoPor = firma;
+    pago.resueltoEn = new Date();
+    if (aprobado) pago.numeroComprobante = `REC-${new Date().getFullYear()}-${pago.id.replace(/-/g, '').slice(0, 8).toUpperCase()}`;
+    return this.repositorioPagos.save(pago);
   }
 
   async informar(socio: Socio, datos: InformePago, hoy = new Date()) {

@@ -2,8 +2,9 @@
 // sembrar.js
 // -----------------------------------------------------------------------
 // Carga el padrón de prueba: los usuarios del portal (socio, personal
-// administrativo y administración principal) y socios de ejemplo con
-// sus cuotas pagadas, una en revisión y un alta esperando validación.
+// administrativo y administración principal), socios de ejemplo con
+// sus cuotas pagadas, una en revisión y un alta esperando validación,
+// la nómina del personal y las noticias.
 //
 //   npm run sembrar
 //
@@ -62,6 +63,22 @@ const BANDEJA_INICIAL = [
 const COMPROBANTE_SOFIA = `data:image/svg+xml;base64,${Buffer.from(
   '<svg xmlns="http://www.w3.org/2000/svg" width="480" height="300"><rect width="480" height="300" fill="#fbf5ea"/><rect width="480" height="56" fill="#7a0f2e"/><text x="24" y="36" font-family="Arial" font-size="20" fill="#fff">Comprobante de transferencia</text><text x="24" y="104" font-family="Arial" font-size="16" fill="#1e1b24">Origen: Sofía Romero · Banco Macro</text><text x="24" y="136" font-family="Arial" font-size="16" fill="#1e1b24">Destino: Club Deportivo · CBU 0000003100012345678901</text><text x="24" y="168" font-family="Arial" font-size="16" fill="#1e1b24">Concepto: cuota social</text><text x="24" y="220" font-family="Arial" font-size="28" font-weight="bold" fill="#7a0f2e">$ 18.000</text><text x="24" y="270" font-family="Arial" font-size="13" fill="#6b6475">Operación N° 88412037 · Transferencia inmediata</text></svg>',
 ).toString('base64')}`;
+
+// Nómina del club. Solo Pedro Díaz tiene usuario del portal en la demo.
+const PERSONAL = [
+  { codigo: 'A01', nombre: 'Pedro Díaz', dni: '30125478', rol: 'Administrativo', sector: 'Atención al socio', correo: 'pedro.diaz@clubdeportivo.com.ar', telefono: 'Interno 214', dias: 'Lunes a viernes', entrada: '09:00', salida: '17:00', ingreso: '2019-03-01', usuario: 'administrativo@club.com' },
+  { codigo: 'A02', nombre: 'Ana García', dni: '32874105', rol: 'Administrativo', sector: 'Atención al socio', correo: 'ana.garcia@clubdeportivo.com.ar', telefono: 'Interno 215', dias: 'Lunes a viernes', entrada: '13:00', salida: '21:00', ingreso: '2021-07-12' },
+  { codigo: 'A03', nombre: 'Roberto Díaz', dni: '27455890', rol: 'Tesorería', sector: 'Tesorería', correo: 'roberto.diaz@clubdeportivo.com.ar', telefono: 'Interno 230', dias: 'Lunes a viernes', entrada: '08:00', salida: '16:00', ingreso: '2016-02-01' },
+  { codigo: 'A04', nombre: 'Silvia Fernández', dni: '25698741', rol: 'Recepción', sector: 'Recepción', correo: 'silvia.fernandez@clubdeportivo.com.ar', telefono: 'Interno 201', dias: 'Fines de semana', entrada: '08:00', salida: '14:00', ingreso: '2018-05-20', ausencia: { motivo: 'Licencia médica', desde: '2026-09-14', hasta: '2026-10-12', nota: 'Reposo por cirugía de rodilla.' } },
+  { codigo: 'A05', nombre: 'Martín Suárez', dni: '35987412', rol: 'Mantenimiento', sector: 'Mantenimiento', correo: 'martin.suarez@clubdeportivo.com.ar', telefono: 'Interno 250', dias: 'Lunes a sábado', entrada: '06:00', salida: '14:00', ingreso: '2022-10-03' },
+];
+
+const NOTICIAS = [
+  { categoria: 'Fútbol', fecha: '2026-09-25', titulo: 'Próximo partido de local', resumen: 'El primer equipo recibe este domingo a las 17 h en La Caldera.', cuerpo: ['El primer equipo de fútbol vuelve a jugar de local este domingo a las 17 h en La Caldera, por la fecha 12 del torneo.', 'Las entradas anticipadas para socios se retiran en la sede de lunes a viernes de 9 a 20 h presentando el carnet y la cuota al día.'] },
+  { categoria: 'Institucional', fecha: '2026-09-22', titulo: 'Abrieron las inscripciones 2027', resumen: 'Ya podés anotarte en las escuelas deportivas y categorías formativas.', cuerpo: ['Están abiertas las inscripciones 2027 para las escuelas deportivas de fútbol, básquet, vóley y hockey, desde los 5 años.', 'Los socios tienen prioridad de cupo hasta el 31 de octubre. Después se abre la inscripción general.'], enlace: { texto: 'Anotate acá', ruta: '/registro' } },
+  { categoria: 'Tienda', fecha: '2026-09-18', titulo: 'Nueva camiseta oficial', resumen: 'Ya está disponible en la tienda del club la nueva indumentaria.', imagen: '/jugadores.jpeg', cuerpo: ['La nueva camiseta titular mantiene los bastones rojos y blancos de siempre y suma detalles en bordó en el cuello y las mangas.', 'Ya está a la venta en la tienda del club, con 15 % de descuento para socios.'] },
+  { categoria: 'Básquet', fecha: '2026-09-15', titulo: 'Triunfo en el clásico', resumen: 'El equipo de básquet ganó 78 a 71 en un estadio cubierto repleto.', cuerpo: ['En un partido parejo hasta el último cuarto, el equipo de básquet se quedó con el clásico por 78 a 71 ante un estadio cubierto repleto.', 'Con este resultado, el club quedó segundo en la tabla de la Liga Tucumana.'] },
+];
 
 const hoy = new Date();
 const fechaDelMes = (dia) => new Date(hoy.getFullYear(), hoy.getMonth(), Math.min(dia, hoy.getDate()), 12);
@@ -175,6 +192,46 @@ async function sembrar() {
       await db.query('UPDATE socios SET categoria_id = $1 WHERE id = $2', [categorias.find((c) => c.nombre === nombreCategoria)?.id ?? null, id]);
       console.log(`  ✔ ${u.rol.padEnd(15)} ${u.email.padEnd(28)} N.º ${numero}`);
     }
+
+    // Personal del club y su canal interno con la dirección.
+    await db.query('DELETE FROM hilos WHERE personal_id IS NOT NULL');
+    for (const persona of PERSONAL) {
+      const { rows: usuario } = persona.usuario ? await db.query('SELECT id FROM socios WHERE email = $1', [persona.usuario]) : { rows: [] };
+      const { rows } = await db.query(
+        `INSERT INTO personal (codigo, usuario_id, nombre, dni, rol, sector, correo, telefono, dias, entrada, salida, ingreso, ausencia)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+         ON CONFLICT (codigo) DO UPDATE SET
+           usuario_id = EXCLUDED.usuario_id, nombre = EXCLUDED.nombre, dni = EXCLUDED.dni, rol = EXCLUDED.rol, sector = EXCLUDED.sector,
+           correo = EXCLUDED.correo, telefono = EXCLUDED.telefono, dias = EXCLUDED.dias, entrada = EXCLUDED.entrada,
+           salida = EXCLUDED.salida, ingreso = EXCLUDED.ingreso, ausencia = EXCLUDED.ausencia, actualizado_en = now()
+         RETURNING id`,
+        [persona.codigo, usuario[0]?.id ?? null, persona.nombre, persona.dni, persona.rol, persona.sector, persona.correo, persona.telefono, persona.dias, persona.entrada, persona.salida, persona.ingreso, persona.ausencia ? JSON.stringify(persona.ausencia) : null],
+      );
+      await db.query('DELETE FROM jornadas WHERE personal_id = $1', [rows[0].id]);
+      if (persona.codigo === 'A01') {
+        const { rows: hilo } = await db.query(
+          `INSERT INTO hilos (tipo, personal_id, asunto, leido_por_socio, leido_por_club, creado_en, actualizado_en)
+           VALUES ('interno', $1, 'Cierre de padrón de octubre', FALSE, TRUE, '2026-09-26T09:30:00-03:00', '2026-09-26T09:30:00-03:00') RETURNING id`,
+          [rows[0].id],
+        );
+        await db.query('INSERT INTO mensajes (hilo_id, del_club, de, para, texto, fecha) VALUES ($1, TRUE, $2, $3, $4, $5)', [
+          hilo[0].id,
+          'direccion@clubdeportivo.com.ar',
+          persona.correo,
+          'Pedro: antes del 5 de octubre necesito el listado de socios con cuotas vencidas para enviar los avisos. Cualquier duda me escribís por acá.',
+          '2026-09-26T09:30:00-03:00',
+        ]);
+      }
+      console.log(`  ✔ personal         ${persona.codigo} ${persona.nombre}`);
+    }
+
+    await db.query('DELETE FROM noticias');
+    for (const n of NOTICIAS) {
+      await db.query('INSERT INTO noticias (categoria, fecha, titulo, resumen, cuerpo, imagen, enlace) VALUES ($1, $2, $3, $4, $5, $6, $7)', [
+        n.categoria, n.fecha, n.titulo, n.resumen, JSON.stringify(n.cuerpo), n.imagen ?? null, n.enlace ? JSON.stringify(n.enlace) : null,
+      ]);
+    }
+    console.log(`  ✔ ${NOTICIAS.length} noticias`);
 
     await db.query('COMMIT');
     console.log('\nDatos de prueba cargados.');

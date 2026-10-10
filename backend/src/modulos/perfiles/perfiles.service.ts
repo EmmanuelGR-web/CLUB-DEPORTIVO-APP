@@ -183,6 +183,36 @@ export class PerfilesService {
     }
   }
 
+  // Aplica un cambio de documento que el personal autorizó.
+  async aplicarAprobados(socioId: string, valores: ValoresCambio) {
+    const socio = await this.socios.buscarPorId(socioId);
+    Object.entries(valores).forEach(([campo, v]) => this.aplicar(socio, campo as CampoEditable, v.nuevo));
+    return this.socios.guardar(socio);
+  }
+
+  // Vuelve a los datos anteriores cuando el personal rechaza un cambio
+  // que el socio ya había aplicado. Solo toca los campos que siguen
+  // con el valor pedido (si después se volvieron a cambiar, se dejan).
+  async revertir(socioId: string, valores: ValoresCambio, autor: string) {
+    const socio = await this.socios.buscarPorId(socioId);
+    const aRevertir = Object.entries(valores)
+      .map(([campo, v]) => [campo as CampoEditable, v] as const)
+      .filter(([campo]) => (CAMPOS_EDITABLES as readonly string[]).includes(campo))
+      .filter(([campo, v]) => JSON.stringify(this.valorActual(socio, campo) ?? null) === JSON.stringify(v.nuevo))
+      .filter(([, v]) => JSON.stringify(v.anterior) !== JSON.stringify(v.nuevo));
+    if (aRevertir.length === 0) return [];
+
+    const cambios = aRevertir.map(([campo, v]) => ({ campo: NOMBRES_CAMPO[campo], anterior: describir(campo, v.nuevo), nuevo: describir(campo, v.anterior) }));
+    aRevertir.forEach(([campo, v]) => {
+      if (campo === 'foto') {
+        socio.foto = (v.anterior as string | null) ?? null;
+      } else this.aplicar(socio, campo, v.anterior);
+    });
+    await this.socios.guardar(socio);
+    await this.registro.registrar({ socioId, socioNombre: socio.nombreCompleto, seccion: 'Cambio revertido', autor, cambios });
+    return cambios.map((c) => c.campo);
+  }
+
   // Devuelve 'pendiente' si quedó algo esperando aprobación, true si se
   // aplicó algún cambio o false si no había nada distinto.
   async guardarCambios(socioId: string, pedidos: CambiosSocio, seccion: string, autor: Autor): Promise<'pendiente' | boolean> {

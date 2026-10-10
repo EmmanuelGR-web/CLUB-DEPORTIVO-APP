@@ -22,7 +22,7 @@ El portal reproduce el sistema que armé en el [proyecto C-DEPORTIVO](https://gi
 - [x] **Fase 2** — Módulo de socios (carnet, código de barras, antigüedad y categoría)
 - [x] **Fase 3** — Módulo de pagos y cuotas con aprobación administrativa y comprobantes
 - [ ] Fase 4 — Información del club (fixture, plantel, historia, museo, complejo)
-- [ ] **Fase 5** — Frontend con React Bootstrap: portal del socio ✔ · panel del personal · panel del administrador principal
+- [ ] **Fase 5** — Frontend con React Bootstrap: portal del socio ✔ · panel del personal ✔ · panel del administrador principal
 - [ ] Fase 6 — Chatbot asistente, documentación final
 
 ## Funcionalidades
@@ -40,6 +40,19 @@ El portal reproduce el sistema que armé en el [proyecto C-DEPORTIVO](https://gi
 - **Bandeja de entrada:** correo institucional del socio, conversaciones con administración, respuestas y **archivos adjuntos** (imágenes que se optimizan solas o PDF).
 - **Panel en vivo:** se actualiza cada 10 segundos y al volver a la pestaña, y tiene un botón para actualizar a mano.
 
+### Panel del personal administrativo
+
+- **Mi jornada:** barra con el estado (en línea o en descanso), hora de ingreso, tiempo trabajado y el descanso del día sobre los **30 minutos permitidos**. Botones para tomar descanso, volver y terminar la jornada (registra la salida y cierra la sesión con un resumen del día). El panel avisa al servidor cada 20 segundos que la persona sigue conectada, así la dirección la ve en vivo.
+- **Resumen de gestión:** solicitudes pendientes, mensajes sin responder, socios activos y cambios de la semana, con acceso directo a cada sección.
+- **Solicitudes:** altas online, cambios de datos hechos por socios y comprobantes de pago, con búsqueda y filtros por estado y tipo. Cada una se **autoriza o rechaza con motivo** y le llega un aviso al socio en su bandeja. En las altas se ve la foto y lo que **leyó la IA del DNI** (y qué corrigió el socio); en los comprobantes, el archivo, la **verificación de la IA** y una alerta si el número de operación ya figura en otro comprobante. Rechazar un cambio que el socio ya había aplicado **vuelve a los datos anteriores**.
+- **Socios:** padrón con búsqueda y la **ficha** de cada socio: deuda actual, corrección de datos (se aplica al instante y queda registrada con la firma de quien la hizo), medio de pago, movimientos y **restablecer la contraseña** al DNI.
+- **Mensajes de socios:** conversaciones de la bandeja de los socios, filtro de las que faltan responder y respuesta como administración.
+- **Registro de cambios:** constancia de cada cambio en las cuentas, agrupada por día, con filtros por tipo, por quién lo hizo (socio o personal), por fechas y búsqueda.
+- **Administración principal:** canal interno con la dirección del club.
+- **Nuevo socio:** alta presencial en la sede con foto opcional y tarjeta o efectivo; el socio queda activo con su DNI como contraseña inicial.
+- **Mis datos:** código de empleado, puesto, sector, horario y antigüedad.
+- Si la dirección le carga **vacaciones, licencia o suspensión**, la persona no puede ingresar mientras dure, y si estaba conectada se le cierra la sesión.
+
 ### En todo el portal
 
 - **Modo claro y oscuro** con el modo nativo de Bootstrap 5.3 (`data-bs-theme`), que se recuerda entre visitas.
@@ -54,7 +67,7 @@ El portal reproduce el sistema que armé en el [proyecto C-DEPORTIVO](https://gi
 | Personal administrativo | `administrativo@club.com` | `admin123` |
 | Administrador principal | `administrador@club.com` | `principal123` |
 
-El socio de prueba es Juan Pérez (Plata, socio desde marzo de 2020, débito automático con Visa). El padrón también trae socios de ejemplo que entran con la contraseña `socio123`: por ejemplo `lucas.herrera@mail.com` (cuota del mes pendiente, para probar informar un pago), `sofia.romero@mail.com` (comprobante en revisión) y `camila.sosa@mail.com` (alta en validación).
+Pedro Díaz (A01) es el personal administrativo con usuario; la nómina trae a otras cuatro personas, entre ellas Silvia Fernández con licencia médica. El socio de prueba es Juan Pérez (Plata, socio desde marzo de 2020, débito automático con Visa). El padrón también trae socios de ejemplo que entran con la contraseña `socio123`: por ejemplo `lucas.herrera@mail.com` (cuota del mes pendiente, para probar informar un pago), `sofia.romero@mail.com` (comprobante en revisión) y `camila.sosa@mail.com` (alta en validación).
 
 ## Tecnologías
 
@@ -89,6 +102,7 @@ cd backend
 npm install
 cp .env.example .env   # completar con los datos de Supabase
 npm run migrar -- migraciones/003_portal_del_socio.sql   # solo si la base viene de una versión anterior
+npm run migrar -- migraciones/004_personal_jornadas_noticias.sql
 npm run sembrar        # opcional: carga los usuarios y socios de prueba
 npm run start:dev
 ```
@@ -124,7 +138,7 @@ Los mensajes de commit siguen la [guía de commits](docs/guia-commits.md).
 
 ## Despliegue
 
-- **Base de datos:** PostgreSQL de Supabase (plan gratuito). Las tablas se crean corriendo en orden los scripts de `backend/migraciones/` (`001`, `002`, `003`), desde el *SQL Editor* de Supabase o con `npm run migrar -- <archivo>`, que aplica cada script en una transacción. Los usuarios de prueba se cargan con `npm run sembrar` desde `backend/`; se puede repetir sin duplicar nada.
+- **Base de datos:** PostgreSQL de Supabase (plan gratuito). Las tablas se crean corriendo en orden los scripts de `backend/migraciones/` (`001` a `004`), desde el *SQL Editor* de Supabase o con `npm run migrar -- <archivo>`, que aplica cada script en una transacción. Los usuarios de prueba se cargan con `npm run sembrar` desde `backend/`; se puede repetir sin duplicar nada.
 - **Backend:** servicio web en Render, con raíz en `backend/`, comando de build `npm install && npm run build` y de inicio `npm run start:prod`. Las variables del backend se cargan en *Environment*.
 - **Frontend:** proyecto de Vercel con raíz en `frontend/` y la variable `NEXT_PUBLIC_API_URL` apuntando a la URL de Render.
 - En Render, `CORS_ORIGENES` tiene la URL de Vercel para que solo el sitio publicado pueda usar la API.
@@ -149,6 +163,8 @@ club-deportivo/
 │           ├── registro-cambios/ → historial y pedidos pendientes de aprobación
 │           ├── archivos/       → comprobantes y adjuntos
 │           ├── ia/             → lectura de DNI y comprobantes con Gemini
+│           ├── gestion/        → panel del personal: solicitudes, padrón, mensajes, altas
+│           ├── personal/       → nómina del club, ausencias y jornadas
 │           └── socios/         → acceso a la tabla de socios
 ├── frontend/                 → Aplicación web (Next.js)
 │   ├── public/                → escudo y fotos del club
@@ -156,7 +172,8 @@ club-deportivo/
 │       ├── app/               → rutas: login, registro, socio, empleado, admin
 │       ├── componentes/
 │       │   ├── auth/           → ingreso, registro, cámara, tarjeta
-│       │   ├── comun/          → tarjetas, estados, adjuntos, modo oscuro
+│       │   ├── comun/          → tarjetas, estados, adjuntos, modo oscuro, canal interno
+│       │   ├── empleado/       → solicitudes, ficha del socio, jornada, registro de cambios
 │       │   ├── layout/         → barra lateral y estructura de los paneles
 │       │   ├── paneles/        → panel de cada rol
 │       │   └── socio/          → carnet, pagos, datos personales, bandeja

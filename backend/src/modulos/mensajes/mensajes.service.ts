@@ -38,13 +38,30 @@ export class MensajesService {
 
   // Hilos de un socio (o de un empleado en el canal interno), con sus
   // mensajes en orden y el más reciente primero.
-  async hilosDe(socioId: string, tipo: Hilo['tipo'] = 'socio') {
-    const hilos = await this.repositorioHilos.find({
-      where: { socioId, tipo },
+  hilosDe(socioId: string) {
+    return this.repositorioHilos.find({
+      where: { socioId, tipo: 'socio' },
       relations: { mensajes: true },
       order: { actualizadoEn: 'DESC', mensajes: { fecha: 'ASC' } },
     });
-    return hilos;
+  }
+
+  // Todas las conversaciones de socios, para el personal.
+  hilosDeSocios() {
+    return this.repositorioHilos.find({
+      where: { tipo: 'socio' },
+      relations: { mensajes: true },
+      order: { actualizadoEn: 'DESC', mensajes: { fecha: 'ASC' } },
+    });
+  }
+
+  // Canal interno: de una persona del personal o, sin filtro, todos.
+  hilosInternos(personalId?: string) {
+    return this.repositorioHilos.find({
+      where: { tipo: 'interno', ...(personalId ? { personalId } : {}) },
+      relations: { mensajes: true },
+      order: { actualizadoEn: 'DESC', mensajes: { fecha: 'ASC' } },
+    });
   }
 
   private validar(mensaje: MensajeNuevo, conAsunto: boolean) {
@@ -66,13 +83,20 @@ export class MensajesService {
     return repositorio.save(repositorio.create({ hiloId, ...remitente, texto: mensaje.texto.trim(), adjuntos }));
   }
 
-  async crearHilo(socioId: string, tipo: Hilo['tipo'], remitente: Remitente, mensaje: MensajeNuevo, gestorExterno?: EntityManager) {
+  async crearHilo(
+    destino: { socioId?: string | null; personalId?: string | null },
+    tipo: Hilo['tipo'],
+    remitente: Remitente,
+    mensaje: MensajeNuevo,
+    gestorExterno?: EntityManager,
+  ) {
     this.validar(mensaje, true);
     const ejecutar = async (gestor: EntityManager) => {
       const repositorio = gestor.getRepository(Hilo);
       const hilo = await repositorio.save(
         repositorio.create({
-          socioId,
+          socioId: destino.socioId ?? null,
+          personalId: destino.personalId ?? null,
           tipo,
           asunto: mensaje.asunto!.trim().slice(0, 120),
           leidoPorSocio: !remitente.delClub,
@@ -85,8 +109,8 @@ export class MensajesService {
     return gestorExterno ? ejecutar(gestorExterno) : this.fuente.transaction(ejecutar);
   }
 
-  async buscarHilo(hiloId: string, socioId?: string) {
-    const hilo = await this.repositorioHilos.findOne({ where: { id: hiloId, ...(socioId ? { socioId } : {}) } });
+  async buscarHilo(hiloId: string, filtro: { socioId?: string; personalId?: string; tipo?: Hilo['tipo'] } = {}) {
+    const hilo = await this.repositorioHilos.findOne({ where: { id: hiloId, ...filtro } });
     if (!hilo) throw new NotFoundException('La conversación no existe.');
     return hilo;
   }
