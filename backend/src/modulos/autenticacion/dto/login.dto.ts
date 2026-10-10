@@ -12,11 +12,11 @@ import { ApiProperty } from '@nestjs/swagger';
 
 export class LoginDto {
   @ApiProperty({ example: 'socio@ejemplo.com' })
-  @IsEmail({}, { message: 'El email no tiene un formato válido' })
+  @IsEmail({}, { message: 'Ingresá un correo electrónico válido.' })
   email: string;
 
   @ApiProperty({ example: 'contrasena123' })
   @IsString()
-  @MinLength(8, { message: 'La contraseña debe tener al menos 8 caracteres' })
+  @MinLength(6, { message: 'La contraseña tiene al menos 6 caracteres.' })
   contrasena: string;
 }

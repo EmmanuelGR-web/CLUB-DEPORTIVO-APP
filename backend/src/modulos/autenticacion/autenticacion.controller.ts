@@ -28,7 +28,7 @@ export class AutenticacionController {
   @Post('registro')
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({
-    summary: 'Crea una cuenta de socio nueva (alta 100% online) y devuelve el token de acceso',
+    summary: 'Alta online de un socio: queda en validación hasta que el personal revisa sus datos',
   })
   async registro(@Body() datosRegistro: RegistrarSocioDto) {
     return this.autenticacionService.registrarSocio(datosRegistro);

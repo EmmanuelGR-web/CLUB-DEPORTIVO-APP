@@ -15,8 +15,10 @@ import { ConfigService } from '@nestjs/config';
 import { TypeOrmModuleAsyncOptions } from '@nestjs/typeorm';
 import { Socio } from '../modulos/socios/entidades/socio.entity';
 import { CategoriaSocio } from '../modulos/socios/entidades/categoria-socio.entity';
-import { Cuota } from '../modulos/pagos/entidades/cuota.entity';
 import { Pago } from '../modulos/pagos/entidades/pago.entity';
+import { Archivo } from '../modulos/archivos/archivo.entity';
+import { RegistroCambio } from '../modulos/registro-cambios/registro-cambio.entity';
+import { Hilo, Mensaje } from '../modulos/mensajes/mensaje.entity';
 
 // Opciones asíncronas: esperamos a que ConfigModule cargue el .env
 // antes de intentar conectarnos a la base.
@@ -37,7 +39,7 @@ const configuracionBaseDatos: TypeOrmModuleAsyncOptions = {
     // Lista de entidades (tablas) que TypeORM debe reconocer.
     // A medida que sumemos módulos (pagos, disciplinas, etc.) se
     // van agregando sus entidades acá.
-    entities: [Socio, CategoriaSocio, Cuota, Pago],
+    entities: [Socio, CategoriaSocio, Pago, Archivo, RegistroCambio, Hilo, Mensaje],
 
     // IMPORTANTE: synchronize en false. Con 20.000+ socios y datos
     // reales de dinero, NUNCA se debe dejar que TypeORM modifique

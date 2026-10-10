@@ -1,66 +1,56 @@
 // =====================================================================
 // registrar-socio.dto.ts
 // -----------------------------------------------------------------------
-// Define los datos que se piden para que una persona cree su cuenta
-// de socio por sí misma, desde el celular o la computadora, sin
-// necesidad de ir presencialmente al club (tal como pediste en la
-// especificación original del proyecto).
-//
-// Notar que acá SÍ pedimos "contrasena" en texto plano (es lo normal:
-// el usuario la tipea así), pero nunca se guarda así en la base.
-// El SociosService se encarga de convertirla en un hash con bcrypt
-// antes de guardar nada.
+// Datos del alta online. Además de los datos personales llegan la
+// selfie del carnet, el medio de pago y lo que leyó la IA del DNI
+// (para que el personal vea qué se leyó y qué corrigió el socio).
 // =====================================================================
 
-import { IsDateString, IsEmail, IsString, MinLength, MaxLength, IsOptional } from 'class-validator';
+import { IsEmail, IsObject, IsOptional, IsString, Matches, MaxLength, MinLength } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class RegistrarSocioDto {
-  @ApiProperty({ example: 'Juan' })
-  @IsString()
-  @MaxLength(100)
+  @ApiProperty({ example: 'Lucía' })
+  @IsString() @MinLength(2, { message: 'Ingresá tu nombre.' }) @MaxLength(100)
   nombre: string;
 
-  @ApiProperty({ example: 'Pérez' })
-  @IsString()
-  @MaxLength(100)
+  @ApiProperty({ example: 'Herrera' })
+  @IsString() @MinLength(2, { message: 'Ingresá tu apellido.' }) @MaxLength(100)
   apellido: string;
 
-  @ApiProperty({ example: 'juan.perez@ejemplo.com' })
-  @IsEmail({}, { message: 'El email no tiene un formato válido' })
+  @ApiProperty({ example: '38123456' })
+  @Matches(/^\d{1,2}\.?\d{3}\.?\d{3}$/, { message: 'El DNI tiene 7 u 8 números.' })
+  dni: string;
+
+  @ApiProperty({ example: '1994-06-12' })
+  @Matches(/^\d{4}-\d{2}-\d{2}$/, { message: 'Ingresá una fecha de nacimiento válida.' })
+  fechaNacimiento: string;
+
+  @ApiProperty({ example: 'Av. Mate de Luna 2150, San Miguel de Tucumán' })
+  @IsString() @MinLength(5, { message: 'Ingresá tu dirección.' }) @MaxLength(200)
+  direccion: string;
+
+  @ApiProperty({ example: '381 555-0101' })
+  @IsString() @Matches(/^[\d\s()+-]{8,20}$/, { message: 'Ingresá un teléfono válido.' })
+  telefono: string;
+
+  @ApiProperty({ example: 'lucia@correo.com' })
+  @IsEmail({}, { message: 'Ingresá un correo electrónico válido.' })
   email: string;
 
-  @ApiProperty({ example: 'contrasena123', minLength: 8 })
-  @IsString()
-  @MinLength(8, { message: 'La contraseña debe tener al menos 8 caracteres' })
+  @ApiProperty({ minLength: 6 })
+  @IsString() @MinLength(6, { message: 'La contraseña tiene que tener al menos 6 caracteres.' })
   contrasena: string;
 
-  @ApiPropertyOptional({ example: '3811234567' })
-  @IsOptional()
-  @IsString()
-  @MaxLength(20)
-  telefono?: string;
+  @ApiProperty({ description: 'Selfie para el carnet (data URL JPEG)' })
+  @IsString() @Matches(/^data:image\/(jpeg|png|webp);base64,/, { message: 'Falta la foto de perfil.' }) @MaxLength(200_000)
+  foto: string;
 
-  @ApiPropertyOptional({ example: '1995-06-20' })
-  @IsOptional()
-  @IsDateString()
-  fechaNacimiento?: string;
+  @ApiProperty({ example: { tipo: 'efectivo', debitoAutomatico: false } })
+  @IsObject()
+  medioPago: Record<string, unknown>;
 
-  @ApiPropertyOptional({ example: 'San Miguel de Tucumán' })
-  @IsOptional()
-  @IsString()
-  @MaxLength(100)
-  ciudad?: string;
-
-  @ApiPropertyOptional({ example: 'Tucumán' })
-  @IsOptional()
-  @IsString()
-  @MaxLength(100)
-  provincia?: string;
-
-  @ApiPropertyOptional({ example: '25 de Mayo 123' })
-  @IsOptional()
-  @IsString()
-  @MaxLength(200)
-  direccion?: string;
+  @ApiPropertyOptional({ description: 'Lo que leyó la IA del DNI y qué campos se corrigieron' })
+  @IsOptional() @IsObject()
+  lecturaIA?: Record<string, unknown>;
 }
