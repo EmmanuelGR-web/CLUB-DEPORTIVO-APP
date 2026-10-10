@@ -22,8 +22,15 @@ function BarraLateral({ usuario, detalle, items, activo, onSeleccionar, variante
   const esEscritorio = useEsEscritorio()
   const router = useRouter()
 
-  const salir = async () => {
+  // Al cerrarse, el menú queda oculto para los lectores de pantalla: el
+  // foco se suelta antes para que no quede adentro.
+  const cerrar = () => {
+    document.activeElement?.blur()
     onCerrar()
+  }
+
+  const salir = async () => {
+    cerrar()
     if (!(await confirmarSalida())) return
     await alSalir?.()
     cerrarSesion()
@@ -32,20 +39,20 @@ function BarraLateral({ usuario, detalle, items, activo, onSeleccionar, variante
 
   const elegir = (id) => {
     onSeleccionar(id)
-    onCerrar()
+    cerrar()
   }
 
   return (
     <Offcanvas
       show={mostrar}
-      onHide={onCerrar}
+      onHide={cerrar}
       responsive="lg"
       placement="start"
       className={`${variantes[variante].clase} text-white ${esEscritorio ? '' : 'rounded-bottom-4 shadow'}`}
       style={{ width: 270, bottom: esEscritorio ? undefined : 'auto' }}
     >
       <Offcanvas.Body className={`position-relative d-flex flex-column p-0 ${variantes[variante].clase} text-white w-100 ${esEscritorio ? 'min-vh-100' : 'rounded-bottom-4'}`} style={variantes[variante].estilo}>
-        {!esEscritorio && <CloseButton variant="white" aria-label="Cerrar menú" onClick={onCerrar} className="position-absolute top-0 end-0 m-2" />}
+        {!esEscritorio && <CloseButton variant="white" aria-label="Cerrar menú" onClick={cerrar} className="position-absolute top-0 end-0 m-2" />}
         <div className="d-flex align-items-center gap-3 p-4 border-bottom border-light border-opacity-10">
           {usuario.foto ? (
             <Image src={usuario.foto} alt={usuario.nombre} roundedCircle width={64} height={64} className="object-fit-cover border border-2 border-warning flex-shrink-0" />

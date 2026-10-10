@@ -71,6 +71,7 @@ El portal reproduce el sistema que armé en el [proyecto C-DEPORTIVO](https://gi
 ### En todo el portal
 
 - **Modo claro y oscuro** con el modo nativo de Bootstrap 5.3 (`data-bs-theme`), desde un interruptor en la barra lateral (o el menú desplegable en el celular); se recuerda entre visitas.
+- **Navegación con historial:** cada sección tiene su dirección (por ejemplo `/socio?seccion=pagos` o `/empleado?seccion=socios&ficha=…`), así el botón atrás del navegador o del celular vuelve a la pantalla anterior, al recargar se queda en la misma sección y fuera de la pantalla principal aparece un botón **Volver** en el encabezado.
 - **SweetAlert2** para errores, confirmaciones y avisos, con botones de Bootstrap y los colores del club.
 - **Diseño responsive** para celular, tablet y computadora: el menú lateral pasa a ser un panel desplegable, debajo de 992 px las tablas (padrón, facturación, personal, control del personal, noticias y beneficios) se muestran como listas, el título del panel se adapta al ancho y los formularios grandes ocupan toda la pantalla en el celular.
 
