@@ -50,6 +50,16 @@ El diseño del portal de socios toma la identidad visual que armé en el [proyec
 - Alta y corrección de cuotas (período, monto y vencimiento).
 - Al aprobar un pago se genera el comprobante con número único.
 
+### Usuarios de prueba
+
+| Rol | Correo | Contraseña |
+|---|---|---|
+| Socio | `socio@club.com` | `socio123` |
+| Personal administrativo | `administrativo@club.com` | `admin123` |
+| Administrador principal | `administrador@club.com` | `principal123` |
+
+El socio de prueba es categoría Plata (7 años de antigüedad) y tiene cuotas de mayo a octubre de 2026 en todos los estados: tres pagadas con comprobante, una rechazada para volver a informar, una en revisión y una pendiente.
+
 ## Tecnologías
 
 | Capa | Tecnología |
@@ -82,6 +92,7 @@ cd CLUB-DEPORTIVO-APP
 cd backend
 npm install
 cp .env.example .env   # completar con los datos de Supabase
+npm run sembrar        # opcional: carga los usuarios de prueba
 npm run start:dev
 ```
 
@@ -115,7 +126,7 @@ Los mensajes de commit siguen la [guía de commits](docs/guia-commits.md).
 
 ## Despliegue
 
-- **Base de datos:** PostgreSQL de Supabase (plan gratuito). Las tablas se crean con los scripts de `backend/migraciones/`.
+- **Base de datos:** PostgreSQL de Supabase (plan gratuito). Las tablas se crean corriendo en orden los scripts de `backend/migraciones/` (`001`, `002`) en el *SQL Editor* de Supabase. Los usuarios de prueba se cargan con `npm run sembrar` desde `backend/`; se puede repetir sin duplicar nada.
 - **Backend:** servicio web en Render, con raíz en `backend/`, comando de build `npm install && npm run build` y de inicio `npm run start:prod`. Las variables del backend se cargan en *Environment*.
 - **Frontend:** proyecto de Vercel con raíz en `frontend/` y la variable `NEXT_PUBLIC_API_URL` apuntando a la URL de Render.
 - En Render, `CORS_ORIGENES` tiene la URL de Vercel para que solo el sitio publicado pueda usar la API.
