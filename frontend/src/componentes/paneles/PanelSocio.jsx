@@ -19,6 +19,7 @@ import Bandeja from '../socio/Bandeja'
 import Tarjeta from '../comun/Tarjeta'
 import { useDatosEnVivo } from '../../hooks/useDatosEnVivo'
 import { useTituloPagina } from '../../hooks/useTituloPagina'
+import { useVista } from '../../hooks/useVista'
 import { useSesion } from '../../contextos/SesionContexto'
 import { barraInferiorSocio, menuSocio } from '../../datos/menus'
 import { descargarCredencial } from '../../utilidades/pdf'
@@ -52,11 +53,7 @@ const leer = async () => {
 function ContenidoSocio({ datos, recargar, actualizado, cambiarDatos }) {
   const { socio, hilos, historial, noticias, beneficios } = datos
   const { actualizarUsuario } = useSesion()
-  const [seccion, setSeccionActual] = useState('resumen')
-  const setSeccion = (id) => {
-    setSeccionActual(id)
-    window.scrollTo({ top: 0 })
-  }
+  const { seccion, ir: setSeccion, volver, puedeVolver } = useVista('resumen', Object.keys(titulos))
   const [descargando, setDescargando] = useState(false)
 
   const sinLeer = hilos.filter((h) => !h.leido).length
@@ -115,6 +112,7 @@ function ContenidoSocio({ datos, recargar, actualizado, cambiarDatos }) {
       onSeleccionar={setSeccion}
       onActualizar={recargar}
       actualizado={actualizado}
+      onVolver={puedeVolver ? volver : undefined}
       barraInferior={<BarraInferior items={barraInferiorSocio} activo={seccion} onSeleccionar={setSeccion} />}
     >
       {seccion === 'resumen' && (
