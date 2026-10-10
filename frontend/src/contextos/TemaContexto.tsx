@@ -40,7 +40,10 @@ export function TemaProveedor({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (!montado) return;
+    // "dark" lo usa Tailwind (panel admin) y data-bs-theme lo usa
+    // Bootstrap (portal de socios); se actualizan juntos.
     document.documentElement.classList.toggle('dark', tema === 'oscuro');
+    document.documentElement.setAttribute('data-bs-theme', tema === 'oscuro' ? 'dark' : 'light');
     localStorage.setItem(CLAVE_ALMACENAMIENTO, tema);
   }, [tema, montado]);
 
