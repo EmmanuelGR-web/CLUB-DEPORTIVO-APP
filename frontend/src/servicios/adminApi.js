@@ -1,4 +1,5 @@
-// Pedidos exclusivos de la administración principal (rutas /admin y /noticias).
+// Pedidos de la administración: /admin (solo la dirección), /noticias y
+// /beneficios (también los gestiona el personal administrativo).
 import { pedir } from './api'
 
 export const obtenerPanelAdmin = () => pedir('/admin/panel')
@@ -16,3 +17,11 @@ export const crearNoticia = (noticia) => pedir('/noticias', { metodo: 'POST', da
 export const modificarNoticia = (id, noticia) => pedir(`/noticias/${id}`, { metodo: 'PATCH', datos: noticia })
 
 export const borrarNoticia = (id) => pedir(`/noticias/${id}`, { metodo: 'DELETE' })
+
+export const listarBeneficios = () => pedir('/beneficios')
+
+export const crearBeneficio = (beneficio) => pedir('/beneficios', { metodo: 'POST', datos: beneficio })
+
+export const modificarBeneficio = (id, beneficio) => pedir(`/beneficios/${id}`, { metodo: 'PATCH', datos: beneficio })
+
+export const borrarBeneficio = (id) => pedir(`/beneficios/${id}`, { metodo: 'DELETE' })

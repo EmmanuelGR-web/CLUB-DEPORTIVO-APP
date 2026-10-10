@@ -241,3 +241,110 @@ body {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* --- Encabezado de los paneles ------------------------------------------
+   El título se achica en pantallas chicas para que entre en una sola
+   línea junto al botón del menú y el de actualizar. */
+.titulo-panel {
+  font-size: clamp(1.05rem, 0.75rem + 1.6vw, 1.75rem);
+  line-height: 1.15;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+/* --- Barra fija inferior del socio (solo celular y tablet) --------------- */
+.barra-inferior {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1030;
+  display: flex;
+  justify-content: space-around;
+  align-items: flex-end;
+  padding: 0.35rem 0.75rem calc(0.45rem + env(safe-area-inset-bottom));
+  background: rgba(17, 12, 18, 0.94);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 -6px 24px rgba(0, 0, 0, 0.25);
+}
+
+.barra-inferior button {
+  flex: 1;
+  max-width: 140px;
+  border: 0;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2rem;
+  padding: 0.25rem 0;
+  transition: color 150ms ease;
+}
+
+.barra-inferior button svg {
+  font-size: 1.25rem;
+}
+
+.barra-inferior button.activo {
+  color: var(--club-dorado);
+}
+
+/* El resumen va en el medio, más grande y levantado. */
+.barra-inferior .boton-central span.circulo {
+  width: 58px;
+  height: 58px;
+  margin-top: -1.6rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  background-image: linear-gradient(145deg, #d7263d 0%, #7a0f2e 70%);
+  border: 4px solid #110c12;
+  box-shadow: 0 6px 18px rgba(215, 38, 61, 0.45);
+  transition: transform 150ms ease;
+}
+
+.barra-inferior .boton-central span.circulo svg {
+  font-size: 1.4rem;
+}
+
+.barra-inferior .boton-central.activo span.circulo {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 22px rgba(227, 178, 60, 0.45);
+  background-image: linear-gradient(145deg, #e3b23c 0%, #d7263d 75%);
+}
+
+@media (max-width: 991.98px) {
+  .con-barra-inferior {
+    padding-bottom: calc(5.5rem + env(safe-area-inset-bottom)) !important;
+  }
+}
+
+@media (min-width: 992px) {
+  .barra-inferior {
+    display: none;
+  }
+}
+
+/* --- Tarjetas de noticias y beneficios del socio -------------------------- */
+.tarjeta-noticia {
+  transition: transform 200ms ease, box-shadow 200ms ease;
+}
+
+.tarjeta-noticia:hover,
+.tarjeta-noticia:focus-visible {
+  transform: translateY(-4px);
+  box-shadow: 0 1rem 2rem rgba(0, 0, 0, 0.15) !important;
+}
+
+.tarjeta-noticia .portada {
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+}

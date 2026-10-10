@@ -73,7 +73,7 @@ function ControlPersonal({ personal, jornadas }) {
           Se actualiza sola cada pocos segundos. El descanso permitido es de {textoDuracion(descansoPermitido)} por jornada. No figura quien está de vacaciones, con licencia o suspendido.
         </p>
 
-        <ul className="list-unstyled d-md-none mb-0">
+        <ul className="list-unstyled d-lg-none mb-0">
           {visibles.map(({ empleado: e, presencia: p }) => (
             <li key={e.id} className="border-bottom py-3">
               <div className="d-flex justify-content-between gap-2 mb-1">
@@ -93,7 +93,7 @@ function ControlPersonal({ personal, jornadas }) {
           ))}
         </ul>
 
-        <Table responsive hover className="align-middle mb-0 d-none d-md-table">
+        <Table responsive hover className="align-middle mb-0 d-none d-lg-table">
           <thead>
             <tr className="text-uppercase small">
               <th scope="col">Empleado</th>

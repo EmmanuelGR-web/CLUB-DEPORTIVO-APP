@@ -121,7 +121,7 @@ function DetalleSolicitud({ solicitud, mostrar, onCerrar, onResolver }) {
   }
 
   return (
-    <Modal show={mostrar} onHide={onCerrar} onExited={reiniciar} centered size={ampliado ? 'xl' : 'lg'}>
+    <Modal show={mostrar} onHide={onCerrar} onExited={reiniciar} centered size={ampliado ? 'xl' : 'lg'} fullscreen="sm-down" scrollable>
       {solicitud && (
         <>
           <Modal.Header closeButton closeVariant="white" className="bg-secondary text-white">

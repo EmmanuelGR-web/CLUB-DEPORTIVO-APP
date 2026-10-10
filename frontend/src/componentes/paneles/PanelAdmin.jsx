@@ -10,6 +10,7 @@ import GestionPersonal from '../admin/GestionPersonal'
 import Facturacion from '../admin/Facturacion'
 import ControlPersonal from '../admin/ControlPersonal'
 import GestionNoticias from '../admin/GestionNoticias'
+import GestionBeneficios from '../admin/GestionBeneficios'
 import ListaSocios from '../empleado/ListaSocios'
 import FichaSocio from '../empleado/FichaSocio'
 import RegistroCambios from '../empleado/RegistroCambios'
@@ -27,6 +28,7 @@ const titulos = {
   socios: 'Socios',
   facturacion: 'Facturación',
   noticias: 'Noticias',
+  beneficios: 'Beneficios',
   reportes: 'Reportes',
   interno: 'Mensajes del personal',
 }
@@ -102,6 +104,7 @@ function ContenidoAdmin({ datos, recargar, actualizado, cambiarDatos }) {
         ))}
       {seccion === 'facturacion' && <Facturacion perfiles={datos.perfiles} autor={`${direccion.nombre} (${direccion.puesto})`} onAbrirFicha={abrirFicha} />}
       {seccion === 'noticias' && <GestionNoticias />}
+      {seccion === 'beneficios' && <GestionBeneficios />}
       {seccion === 'reportes' && <RegistroCambios registros={datos.registros} />}
       {seccion === 'interno' && (
         <MensajesInternos rol="admin" hilos={datos.hilosInternos} personal={datos.personal} onAbrir={abrirInterno} onResponder={responderInterno} onCrear={crearInterno} />

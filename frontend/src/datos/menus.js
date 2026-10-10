@@ -1,4 +1,4 @@
-import { FaThLarge, FaUser, FaFileInvoiceDollar, FaInbox, FaClipboardCheck, FaUsers, FaHistory, FaUserPlus, FaIdBadge, FaComments, FaUserTie, FaChartBar, FaUserClock, FaNewspaper } from 'react-icons/fa'
+import { FaThLarge, FaUser, FaFileInvoiceDollar, FaInbox, FaClipboardCheck, FaUsers, FaHistory, FaUserPlus, FaIdBadge, FaComments, FaUserTie, FaChartBar, FaUserClock, FaNewspaper, FaGift } from 'react-icons/fa'
 
 export const enlacesInicio = [
   { etiqueta: 'Inicio', href: '#inicio' },
@@ -14,6 +14,15 @@ export const menuSocio = [
   { id: 'datos', etiqueta: 'Datos personales', icono: FaUser },
   { id: 'pagos', etiqueta: 'Facturas y pagos', icono: FaFileInvoiceDollar },
   { id: 'bandeja', etiqueta: 'Bandeja de entrada', icono: FaInbox },
+  { id: 'noticias', etiqueta: 'Noticias', icono: FaNewspaper },
+  { id: 'beneficios', etiqueta: 'Beneficios', icono: FaGift },
+]
+
+// Barra fija de abajo en el celular: el resumen va en el medio.
+export const barraInferiorSocio = [
+  { id: 'noticias', etiqueta: 'Noticias', icono: FaNewspaper },
+  { id: 'resumen', etiqueta: 'Resumen', icono: FaThLarge, central: true },
+  { id: 'beneficios', etiqueta: 'Beneficios', icono: FaGift },
 ]
 
 export const menuEmpleado = [
@@ -24,6 +33,8 @@ export const menuEmpleado = [
   { id: 'cambios', etiqueta: 'Registro de cambios', icono: FaHistory },
   { id: 'interno', etiqueta: 'Administración principal', icono: FaComments },
   { id: 'nuevo', etiqueta: 'Nuevo socio', icono: FaUserPlus },
+  { id: 'noticias', etiqueta: 'Noticias', icono: FaNewspaper },
+  { id: 'beneficios', etiqueta: 'Beneficios', icono: FaGift },
   { id: 'datos', etiqueta: 'Mis datos', icono: FaIdBadge },
 ]
 
@@ -34,6 +45,7 @@ export const menuAdmin = [
   { id: 'socios', etiqueta: 'Socios', icono: FaUsers },
   { id: 'facturacion', etiqueta: 'Facturación', icono: FaFileInvoiceDollar },
   { id: 'noticias', etiqueta: 'Noticias', icono: FaNewspaper },
+  { id: 'beneficios', etiqueta: 'Beneficios', icono: FaGift },
   { id: 'reportes', etiqueta: 'Reportes', icono: FaChartBar },
   { id: 'interno', etiqueta: 'Mensajes del personal', icono: FaComments },
 ]

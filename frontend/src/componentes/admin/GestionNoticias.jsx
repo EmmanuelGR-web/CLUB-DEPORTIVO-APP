@@ -106,12 +106,37 @@ function GestionNoticias() {
 
   return (
     <Tarjeta titulo="Noticias del club">
-      <p className="small text-body-secondary">Las noticias se guardan en el servidor del club y quedan listas para mostrarse en el sitio.</p>
+      <p className="small text-body-secondary">Lo que se publica acá lo ven todos los socios en la sección Noticias de su panel.</p>
 
       <EstadoConsulta cargando={cargando} error={error} vacio={noticias?.length === 0} onReintentar={recargar} textoVacio="Todavía no hay noticias." />
 
       {noticias?.length > 0 && (
-        <Table responsive hover className="align-middle">
+        <ul className="list-unstyled d-lg-none mb-3">
+          {noticias.map((n) => (
+            <li key={n.id} className="border-bottom py-3">
+              <div className="d-flex align-items-center gap-2 mb-1">
+                <Badge bg={coloresCategoria[n.categoria]?.bg ?? 'secondary'} text={coloresCategoria[n.categoria]?.text}>
+                  {n.categoria}
+                </Badge>
+                <small className="text-body-secondary">{formatearFecha(n.fecha)}</small>
+              </div>
+              <div className="fw-semibold">{n.titulo}</div>
+              <div className="small text-body-secondary">{n.resumen}</div>
+              <div className="mt-2">
+                <Button size="sm" variant="outline-secondary" className="rounded-pill px-3 me-1" onClick={() => abrir(n)}>
+                  Editar
+                </Button>
+                <Button size="sm" variant="link" className="link-danger" onClick={() => borrar(n)}>
+                  Borrar
+                </Button>
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
+
+      {noticias?.length > 0 && (
+        <Table responsive hover className="align-middle d-none d-lg-table">
           <thead>
             <tr className="text-uppercase small">
               <th scope="col">Noticia</th>
@@ -153,7 +178,7 @@ function GestionNoticias() {
         Nueva noticia
       </Button>
 
-      <Modal show={Boolean(editando)} onHide={() => setEditando(null)} centered size="lg" enforceFocus={false}>
+      <Modal show={Boolean(editando)} onHide={() => setEditando(null)} centered size="lg" fullscreen="sm-down" enforceFocus={false}>
         <Form noValidate onSubmit={guardar}>
           <Modal.Header closeButton>
             <Modal.Title className="h5 fw-bold text-secondary">{editando?.id ? 'Editar noticia' : 'Nueva noticia'}</Modal.Title>
