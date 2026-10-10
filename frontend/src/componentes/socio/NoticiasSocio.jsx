@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Row, Col, Badge, Modal, Form } from 'react-bootstrap'
+import { Row, Col, Badge, Modal } from 'react-bootstrap'
 import { FaRegNewspaper } from 'react-icons/fa'
 import { coloresCategoria } from '../../datos/noticias'
 import { formatearFechaConAnio } from '../../utilidades/fechas'
@@ -120,7 +120,6 @@ function NoticiasSocio({ noticias }) {
           </>
         )}
       </Modal>
-      <Form.Text className="d-block text-center mt-4">Las noticias las publica el club desde la administración.</Form.Text>
     </>
   )
 }

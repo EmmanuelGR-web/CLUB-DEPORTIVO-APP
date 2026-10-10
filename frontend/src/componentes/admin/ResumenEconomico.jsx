@@ -182,8 +182,7 @@ function ResumenEconomico({ resumen, evolucion, autor, mostrar, onCerrar }) {
         {error && <Alert variant="danger">No se pudo generar el PDF. Probá de nuevo.</Alert>}
       </Modal.Body>
       <Modal.Footer>
-        <small className="text-body-secondary me-auto">Las cuotas impagas no son egresos: son ingresos que el club todavía no cobró.</small>
-        <Button variant="outline-secondary" className="rounded-pill px-4" onClick={onCerrar}>
+        <Button variant="outline-secondary" className="rounded-pill px-4 me-auto" onClick={onCerrar}>
           Cerrar
         </Button>
         <Button variant="secondary" className="rounded-pill px-4" onClick={descargar} disabled={generando}>
