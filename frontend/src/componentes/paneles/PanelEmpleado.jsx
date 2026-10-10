@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useSesion } from '../../contextos/SesionContexto'
 import { useDatosEnVivo } from '../../hooks/useDatosEnVivo'
 import { useTituloPagina } from '../../hooks/useTituloPagina'
+import { useVista } from '../../hooks/useVista'
 import PantallaCarga from '../comun/PantallaCarga'
 import MensajesInternos from '../comun/MensajesInternos'
 import PanelLayout from '../layout/PanelLayout'
@@ -47,10 +48,9 @@ const titulos = {
 }
 
 function ContenidoEmpleado({ datos, recargar, actualizado, cambiarDatos }) {
-  const [seccion, setSeccion] = useState('resumen')
+  const { seccion, ficha: fichaAbierta, ir, volver, puedeVolver } = useVista('resumen', Object.keys(titulos))
   const [revisando, setRevisando] = useState(null)
   const [mostrarDetalle, setMostrarDetalle] = useState(false)
-  const [fichaAbierta, setFichaAbierta] = useState(null)
   const { cerrarSesion } = useSesion()
   const router = useRouter()
   const { empleado } = datos
@@ -118,18 +118,16 @@ function ContenidoEmpleado({ datos, recargar, actualizado, cambiarDatos }) {
       actualizado={actualizado}
       extra={<ControlJornada />}
       alSalir={() => jornadaApi('salida').catch(() => {})}
-      onSeleccionar={(id) => {
-        setSeccion(id)
-        setFichaAbierta(null)
-      }}
+      onSeleccionar={(id) => ir(id)}
+      onVolver={puedeVolver ? volver : undefined}
     >
-      {seccion === 'resumen' && <ResumenGestion {...datos} onIr={setSeccion} onRevisar={revisar} />}
+      {seccion === 'resumen' && <ResumenGestion {...datos} onIr={ir} onRevisar={revisar} />}
       {seccion === 'solicitudes' && <Solicitudes solicitudes={datos.solicitudes} onRevisar={revisar} />}
       {seccion === 'socios' &&
         (fichaAbierta ? (
-          <FichaSocio key={fichaAbierta} socioId={fichaAbierta} onVolver={() => setFichaAbierta(null)} onCambio={recargar} />
+          <FichaSocio key={fichaAbierta} socioId={fichaAbierta} onVolver={volver} onCambio={recargar} />
         ) : (
-          <ListaSocios perfiles={datos.perfiles} onAbrir={setFichaAbierta} />
+          <ListaSocios perfiles={datos.perfiles} onAbrir={(id) => ir('socios', id)} />
         ))}
       {seccion === 'mensajes' && <MensajesSocios conversaciones={datos.conversaciones} onResponder={responderSocio} />}
       {seccion === 'cambios' && <RegistroCambios registros={datos.registros} />}

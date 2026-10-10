@@ -1,8 +1,9 @@
 'use client'
 
-import { useCallback, useState } from 'react'
+import { useCallback } from 'react'
 import { useTituloPagina } from '../../hooks/useTituloPagina'
 import { useDatosEnVivo } from '../../hooks/useDatosEnVivo'
+import { useVista } from '../../hooks/useVista'
 import PantallaCarga from '../comun/PantallaCarga'
 import PanelLayout from '../layout/PanelLayout'
 import ResumenAdmin from '../admin/ResumenAdmin'
@@ -49,18 +50,8 @@ const leer = async () => {
 }
 
 function ContenidoAdmin({ datos, recargar, actualizado, cambiarDatos }) {
-  const [seccion, setSeccion] = useState('resumen')
-  const [fichaAbierta, setFichaAbierta] = useState(null)
-
-  const ir = (id) => {
-    setSeccion(id)
-    setFichaAbierta(null)
-  }
-
-  const abrirFicha = (id) => {
-    setSeccion('socios')
-    setFichaAbierta(id)
-  }
+  const { seccion, ficha: fichaAbierta, ir, volver, puedeVolver } = useVista('resumen', Object.keys(titulos))
+  const abrirFicha = (id) => ir('socios', id)
 
   const abrirInterno = (id) => {
     cambiarDatos((actual) => ({ ...actual, hilosInternos: actual.hilosInternos.map((h) => (h.id === id ? { ...h, leidoPor: { ...h.leidoPor, admin: true } } : h)) }))
@@ -91,16 +82,17 @@ function ContenidoAdmin({ datos, recargar, actualizado, cambiarDatos }) {
       variante="bordo"
       onActualizar={recargar}
       actualizado={actualizado}
-      onSeleccionar={ir}
+      onSeleccionar={(id) => ir(id)}
+      onVolver={puedeVolver ? volver : undefined}
     >
       {seccion === 'resumen' && <ResumenAdmin {...datos} onIr={ir} />}
       {seccion === 'presencia' && <ControlPersonal personal={datos.personal} jornadas={datos.jornadas} />}
       {seccion === 'personal' && <GestionPersonal personal={datos.personal} jornadas={datos.jornadas} onCambio={recargar} />}
       {seccion === 'socios' &&
         (fichaAbierta ? (
-          <FichaSocio key={fichaAbierta} socioId={fichaAbierta} onVolver={() => setFichaAbierta(null)} onCambio={recargar} puedeDarDeBaja />
+          <FichaSocio key={fichaAbierta} socioId={fichaAbierta} onVolver={volver} onCambio={recargar} puedeDarDeBaja />
         ) : (
-          <ListaSocios perfiles={datos.perfiles} onAbrir={setFichaAbierta} />
+          <ListaSocios perfiles={datos.perfiles} onAbrir={abrirFicha} />
         ))}
       {seccion === 'facturacion' && <Facturacion perfiles={datos.perfiles} autor={`${direccion.nombre} (${direccion.puesto})`} onAbrirFicha={abrirFicha} />}
       {seccion === 'noticias' && <GestionNoticias />}
