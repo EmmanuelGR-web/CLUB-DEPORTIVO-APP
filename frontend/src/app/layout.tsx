@@ -1,42 +1,40 @@
 import type { Metadata, Viewport } from 'next';
-import { Inter, Rajdhani, JetBrains_Mono } from 'next/font/google';
 import { TemaProveedor } from '@/contextos/TemaContexto';
-import { AuthProveedor } from '@/contextos/AuthContexto';
+import { SesionProveedor } from '@/contextos/SesionContexto';
 import 'bootstrap/dist/css/bootstrap.min.css';
-import './globals.css';
-import '@/estilos/club.css';
-
-const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
-// Rajdhani para títulos y credencial: condensada, con aire deportivo.
-const rajdhani = Rajdhani({
-  subsets: ['latin'],
-  weight: ['500', '600', '700'],
-  variable: '--font-rajdhani',
-});
-// Monoespaciada para números de socio, DNI y montos.
-const jetbrains = JetBrains_Mono({
-  subsets: ['latin'],
-  weight: ['500', '700'],
-  variable: '--font-jetbrains',
-});
+import '@/estilos/global.css';
 
 export const metadata: Metadata = {
   title: 'Portal de socios | Club Deportivo',
-  description:
-    'Portal de socios del Club Deportivo: carnet digital, cuota social, comprobantes de pago y datos personales.',
+  description: 'Portal del Club Deportivo: carnet digital, cuota social, comprobantes, mensajes y gestión del padrón de socios.',
+  authors: [{ name: 'Emmanuel Gonzalez Rojas' }],
   icons: { icon: '/logo.png', apple: '/logo.png' },
+  robots: { index: false, follow: false },
 };
 
 export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
   themeColor: '#7a0f2e',
 };
+
+// El tema se aplica antes de pintar para que no haya un parpadeo claro
+// al entrar en modo oscuro.
+const temaInicial = `try{var t=localStorage.getItem('club:tema');if(!t&&matchMedia('(prefers-color-scheme: dark)').matches)t='oscuro';document.documentElement.setAttribute('data-bs-theme',t==='oscuro'?'dark':'light')}catch(e){}`;
 
 export default function LayoutRaiz({ children }: { children: React.ReactNode }) {
   return (
     <html lang="es" data-bs-theme="light" suppressHydrationWarning>
-      <body className={`${inter.variable} ${rajdhani.variable} ${jetbrains.variable}`}>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: temaInicial }} />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
+        {/* eslint-disable-next-line @next/next/no-page-custom-font */}
+        <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet" />
+      </head>
+      <body>
         <TemaProveedor>
-          <AuthProveedor>{children}</AuthProveedor>
+          <SesionProveedor>{children}</SesionProveedor>
         </TemaProveedor>
       </body>
     </html>
