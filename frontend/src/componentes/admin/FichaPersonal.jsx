@@ -36,7 +36,7 @@ function FichaPersonal({ empleado, jornadas, onCerrar, onEditar, onReincorporar 
   const hoy = vigente ? null : presenciaDe(empleado, jornadas, ahora)
 
   return (
-    <Modal show onHide={onCerrar} centered size="lg" contentClassName="border-0 rounded-4 overflow-hidden shadow-lg">
+    <Modal show onHide={onCerrar} centered size="lg" fullscreen="sm-down" scrollable contentClassName="border-0 rounded-4 overflow-hidden shadow-lg">
       <EncabezadoLegajo nombre={empleado.nombre} antetitulo={`Legajo ${empleado.codigo} · ${empleado.rol}`} onCerrar={onCerrar}>
         <div className="d-flex flex-wrap align-items-center gap-2 small">
           {vigente ? (

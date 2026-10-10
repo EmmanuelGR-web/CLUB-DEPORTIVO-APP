@@ -195,7 +195,7 @@ function GestionPersonal({ personal, jornadas, onCambio }) {
         </div>
       </Collapse>
 
-      <ul className="list-unstyled d-md-none mb-0">
+      <ul className="list-unstyled d-lg-none mb-0">
         {filtrados.map((e) => (
           <li key={e.id} className="border-bottom py-3">
             <div className="d-flex align-items-start gap-2">
@@ -213,7 +213,7 @@ function GestionPersonal({ personal, jornadas, onCambio }) {
         ))}
       </ul>
 
-      <Table responsive hover className="align-middle mb-0 d-none d-md-table">
+      <Table responsive hover className="align-middle mb-0 d-none d-lg-table">
         <thead>
           <tr className="text-uppercase small">
             <th scope="col" style={{ width: 40 }}>

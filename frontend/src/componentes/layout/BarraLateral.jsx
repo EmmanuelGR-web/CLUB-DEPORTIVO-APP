@@ -1,9 +1,10 @@
 'use client'
 
-import { Offcanvas, Nav, Button, Image, CloseButton } from 'react-bootstrap'
+import { Offcanvas, Nav, Button, Image, CloseButton, Form } from 'react-bootstrap'
 import { useRouter } from 'next/navigation'
-import { FaSignOutAlt, FaUserCircle } from 'react-icons/fa'
+import { FaMoon, FaSignOutAlt, FaSun, FaUserCircle } from 'react-icons/fa'
 import { useSesion } from '../../contextos/SesionContexto'
+import { useTema } from '../../contextos/TemaContexto'
 import { confirmarSalida } from '../../utilidades/alertas'
 import { fondoBordo, fondoElectrico } from '../auth/estilosAuth'
 import { useEsEscritorio } from '../../hooks/useEsEscritorio'
@@ -16,6 +17,8 @@ const variantes = {
 
 function BarraLateral({ usuario, detalle, items, activo, onSeleccionar, variante = 'electrico', mostrar, onCerrar, alSalir }) {
   const { cerrarSesion } = useSesion()
+  const { tema, alternarTema } = useTema()
+  const oscuro = tema === 'oscuro'
   const esEscritorio = useEsEscritorio()
   const router = useRouter()
 
@@ -79,7 +82,16 @@ function BarraLateral({ usuario, detalle, items, activo, onSeleccionar, variante
           })}
         </Nav>
 
-        <div className="p-4">
+        <div className="p-4 pt-2">
+          <label
+            htmlFor="modo-oscuro"
+            className="d-flex align-items-center gap-3 rounded-pill bg-white bg-opacity-10 px-3 py-2 mb-3 small fw-semibold"
+            style={{ cursor: 'pointer' }}
+          >
+            {oscuro ? <FaMoon aria-hidden="true" /> : <FaSun aria-hidden="true" />}
+            <span className="flex-grow-1">Modo oscuro</span>
+            <Form.Check type="switch" id="modo-oscuro" className="mb-0" checked={oscuro} onChange={alternarTema} aria-label="Modo oscuro" />
+          </label>
           <Button variant={{ rojo: 'light', bordo: 'outline-light' }[variante] ?? 'primary'} className="w-100 rounded-pill d-inline-flex align-items-center justify-content-center gap-2" onClick={salir}>
             <FaSignOutAlt aria-hidden="true" /> Cerrar sesión
           </Button>
