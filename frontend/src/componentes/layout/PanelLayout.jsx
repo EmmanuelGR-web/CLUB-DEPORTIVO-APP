@@ -2,13 +2,13 @@
 
 import { useState } from 'react'
 import { Button } from 'react-bootstrap'
-import { FaBars, FaSyncAlt } from 'react-icons/fa'
+import { FaArrowLeft, FaBars, FaSyncAlt } from 'react-icons/fa'
 import BarraLateral from './BarraLateral'
 import { useEsEscritorio } from '../../hooks/useEsEscritorio'
 
 const hora = (fecha) => fecha.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
 
-function PanelLayout({ titulo, children, onActualizar, actualizado, extra, barraInferior, ...propsBarra }) {
+function PanelLayout({ titulo, children, onActualizar, actualizado, extra, barraInferior, onVolver, ...propsBarra }) {
   const esEscritorio = useEsEscritorio()
   const [menuAbierto, setMenuAbierto] = useState(false)
   const [girando, setGirando] = useState(false)
@@ -27,9 +27,25 @@ function PanelLayout({ titulo, children, onActualizar, actualizado, extra, barra
 
       <main className={`flex-grow-1 p-3 p-md-4 p-xl-5 overflow-hidden ${barraInferior ? 'con-barra-inferior' : ''}`} style={{ minWidth: 0 }}>
         <div className="d-flex align-items-center gap-2 gap-md-3 mb-4">
-          <Button variant="secondary" className="d-lg-none flex-shrink-0" onClick={() => setMenuAbierto(true)} aria-label="Abrir menú del panel">
+          <Button
+            variant="secondary"
+            className="d-lg-none flex-shrink-0"
+            onClick={(e) => {
+              // El menú tapa la página para los lectores de pantalla: el
+              // foco no puede quedar en este botón mientras está abierto.
+              e.currentTarget.blur()
+              setMenuAbierto(true)
+            }}
+            aria-label="Abrir menú del panel"
+          >
             <FaBars />
           </Button>
+          {onVolver && (
+            <Button variant="outline-secondary" className="flex-shrink-0 rounded-pill d-inline-flex align-items-center gap-2 px-2 px-sm-3" onClick={onVolver} aria-label="Volver a la pantalla anterior">
+              <FaArrowLeft aria-hidden="true" />
+              <span className="d-none d-sm-inline">Volver</span>
+            </Button>
+          )}
           <h1 className="titulo-panel fw-bolder text-uppercase fst-italic text-secondary mb-0 me-auto">{titulo}</h1>
           {onActualizar && (
             <div className="d-flex align-items-center gap-2 flex-shrink-0">
