@@ -2,7 +2,9 @@
 
 Proyecto de tesis — Tecnicatura Universitaria en Programación, UTN FRT.
 
-🔗 **Sitio publicado:** _pendiente del primer deploy en Vercel_
+🔗 **Sitio publicado:** [club-deportivo-app.vercel.app](https://club-deportivo-app.vercel.app/)
+
+🔗 **API (Swagger):** [club-deportivo-api-4w10.onrender.com/documentacion](https://club-deportivo-api-4w10.onrender.com/documentacion)
 
 ## Integrantes
 
@@ -116,6 +118,9 @@ Los mensajes de commit siguen la [guía de commits](docs/guia-commits.md).
 - **Base de datos:** PostgreSQL de Supabase (plan gratuito). Las tablas se crean con los scripts de `backend/migraciones/`.
 - **Backend:** servicio web en Render, con raíz en `backend/`, comando de build `npm install && npm run build` y de inicio `npm run start:prod`. Las variables del backend se cargan en *Environment*.
 - **Frontend:** proyecto de Vercel con raíz en `frontend/` y la variable `NEXT_PUBLIC_API_URL` apuntando a la URL de Render.
+- En Render, `CORS_ORIGENES` tiene la URL de Vercel para que solo el sitio publicado pueda usar la API.
+- Mientras se prueba, Render y Vercel publican la rama `dev`; cuando quede estable pasan a `main`.
+- En el plan gratis Render apaga el backend tras 15 minutos sin uso: la primera carga después de eso tarda unos 50 segundos.
 
 ## Estructura del repositorio
 
