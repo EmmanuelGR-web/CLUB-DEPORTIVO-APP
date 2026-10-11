@@ -6,9 +6,10 @@ import { SociosModule } from '../socios/socios.module';
 import { PagosModule } from '../pagos/pagos.module';
 import { RegistroCambiosModule } from '../registro-cambios/registro-cambios.module';
 import { MensajesModule } from '../mensajes/mensajes.module';
+import { AutenticacionModule } from '../autenticacion/autenticacion.module';
 
 @Module({
-  imports: [PerfilesModule, SociosModule, PagosModule, RegistroCambiosModule, MensajesModule],
+  imports: [PerfilesModule, SociosModule, PagosModule, RegistroCambiosModule, MensajesModule, AutenticacionModule],
   controllers: [MiCuentaController],
   providers: [MiCuentaService],
 })

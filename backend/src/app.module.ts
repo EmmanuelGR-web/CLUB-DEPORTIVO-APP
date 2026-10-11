@@ -14,6 +14,9 @@
 
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { APP_GUARD } from '@nestjs/core';
+import { ThrottlerModule } from '@nestjs/throttler';
+import { LimitePedidosGuard } from './comun/guards/limite-pedidos.guard';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import configuracionBaseDatos from './config/database.config';
 import { AutenticacionModule } from './modulos/autenticacion/autenticacion.module';
@@ -40,6 +43,14 @@ import { BeneficiosModule } from './modulos/beneficios/beneficios.module';
     // La configuración detallada vive en config/database.config.ts
     TypeOrmModule.forRootAsync(configuracionBaseDatos),
 
+    // Límite general de pedidos por red: 150 por minuto alcanza de sobra
+    // para usar los paneles (se actualizan cada 10 s). Login, registro e
+    // IA tienen límites propios más bajos.
+    ThrottlerModule.forRoot({
+      throttlers: [{ name: 'general', ttl: 60_000, limit: 150 }],
+      errorMessage: 'Hiciste demasiados pedidos seguidos. Esperá un minuto y probá de nuevo.',
+    }),
+
     // --- Módulos de dominio ---
     AutenticacionModule,
     SociosModule,
@@ -56,5 +67,6 @@ import { BeneficiosModule } from './modulos/beneficios/beneficios.module';
     // agregando: DisciplinasModule, ClubInfoModule, BeneficiosModule,
     // AdminModule, ChatbotModule, etc.
   ],
+  providers: [{ provide: APP_GUARD, useClass: LimitePedidosGuard }],
 })
 export class AppModule {}

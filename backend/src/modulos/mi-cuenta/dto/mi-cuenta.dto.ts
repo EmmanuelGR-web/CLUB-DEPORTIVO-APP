@@ -1,5 +1,6 @@
 import { Type } from 'class-transformer';
 import { IsArray, IsIn, IsInt, IsObject, IsOptional, IsString, Matches, MaxLength, MinLength, ValidateNested } from 'class-validator';
+import { MENSAJE_CONTRASENA, REGLA_CONTRASENA } from '../../../comun/utilidades/contrasenas.util';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class ArchivoDto {
@@ -20,7 +21,7 @@ export class GuardarCambiosDto {
 
 export class CambiarContrasenaDto {
   @IsString() actual: string;
-  @IsString() @MinLength(6, { message: 'La contraseña nueva tiene que tener al menos 6 caracteres.' }) nueva: string;
+  @IsString() @Matches(REGLA_CONTRASENA, { message: MENSAJE_CONTRASENA }) nueva: string;
 }
 
 export class InformarPagoDto {

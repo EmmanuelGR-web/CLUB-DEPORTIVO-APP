@@ -16,3 +16,7 @@ export const camposPersonales = {
 export const listaCampos = (nombres) => nombres.map((nombre) => ({ nombre, ...camposPersonales[nombre] }))
 
 export const camposIdentidad = ['nombre', 'apellido', 'dni', 'fechaNacimiento']
+
+// Misma regla que el backend: al menos 8 caracteres, con letras y números.
+export const contrasenaValida = (v) => /^(?=.*[A-Za-zÁÉÍÓÚÜÑáéíóúüñ])(?=.*\d).{8,72}$/.test(v)
+export const mensajeContrasena = 'Al menos 8 caracteres, con letras y números.'

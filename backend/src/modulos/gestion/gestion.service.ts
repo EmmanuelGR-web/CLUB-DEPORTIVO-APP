@@ -14,7 +14,7 @@
 // =====================================================================
 
 import { BadRequestException, ConflictException, ForbiddenException, Injectable } from '@nestjs/common';
-import * as bcrypt from 'bcrypt';
+import { cifrarContrasena, contrasenaTemporal } from '../../comun/utilidades/contrasenas.util';
 import { SociosService, normalizarDni } from '../socios/socios.service';
 import { Socio, MedioPagoSocio } from '../socios/entidades/socio.entity';
 import { PerfilesService, CambiosSocio } from '../perfiles/perfiles.service';
@@ -287,18 +287,21 @@ export class GestionService {
   async restablecerContrasena(usuario: UsuarioAutenticado, socioId: string) {
     const firma = await this.personal.firma(usuario);
     const socio = await this.socios.buscarPorIdConContrasena(socioId);
-    if (!socio.dni) throw new BadRequestException('El socio no tiene DNI cargado: corregilo antes de restablecer la contraseña.');
-    socio.contrasenaHash = await bcrypt.hash(normalizarDni(socio.dni), 10);
+    // Contraseña temporal al azar, que el personal le pasa al socio en
+    // persona. El DNI no sirve: lo conoce mucha gente.
+    const temporal = contrasenaTemporal();
+    socio.contrasenaHash = await cifrarContrasena(temporal);
     socio.debeCambiarContrasena = true;
+    socio.versionSesion = (socio.versionSesion ?? 0) + 1;
     await this.socios.guardar(socio);
     await this.registro.registrar({
       socioId,
       socioNombre: socio.nombreCompleto,
       seccion: 'Contraseña',
       autor: firma,
-      cambios: [{ campo: 'Contraseña', anterior: '••••••', nuevo: 'Restablecida al DNI' }],
+      cambios: [{ campo: 'Contraseña', anterior: '••••••', nuevo: 'Restablecida con una contraseña temporal' }],
     });
-    return { dni: normalizarDni(socio.dni), ...(await this.ficha(socioId)) };
+    return { contrasena: temporal, ...(await this.ficha(socioId)) };
   }
 
   // Solo la administración principal puede dar de baja: el socio deja
@@ -323,6 +326,7 @@ export class GestionService {
   async altaPresencial(usuario: UsuarioAutenticado, datos: AltaPresencial) {
     const firma = await this.personal.firma(usuario);
     const dni = normalizarDni(datos.dni);
+    const temporal = contrasenaTemporal();
     const medio = datos.medioPago;
     const medioPago: MedioPagoSocio =
       medio?.tipo === 'tarjeta' && EMISORES.includes(String(medio.emisor)) && /^\d{4}$/.test(String(medio.ultimos4))
@@ -339,7 +343,7 @@ export class GestionService {
       nombre: datos.nombre,
       apellido: datos.apellido,
       email: datos.email,
-      contrasenaHash: await bcrypt.hash(dni, 10),
+      contrasenaHash: await cifrarContrasena(temporal),
       dni,
       fechaNacimiento: datos.fechaNacimiento,
       direccion: datos.direccion,
@@ -362,7 +366,7 @@ export class GestionService {
       { autorId: null, delClub: true, de: CORREO_ADMINISTRACION, para: correoInstitucional(socio.nombreCompleto, String(socio.idSocio)) },
       { asunto: 'Bienvenida al club', texto: `Hola, ${socio.nombre}. Ya sos parte del club: tu carnet digital está en el panel de socio. Te recomendamos cambiar la contraseña inicial.` },
     );
-    return { nombre: socio.nombreCompleto, email: socio.email, contrasena: dni };
+    return { nombre: socio.nombreCompleto, email: socio.email, contrasena: temporal };
   }
 
   // ------------------------------------------------------------------

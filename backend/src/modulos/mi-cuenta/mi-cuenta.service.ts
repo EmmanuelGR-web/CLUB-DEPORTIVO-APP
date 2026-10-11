@@ -1,5 +1,5 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
-import * as bcrypt from 'bcrypt';
+import { cifrarContrasena, compararContrasena } from '../../comun/utilidades/contrasenas.util';
 import { PerfilesService, CambiosSocio } from '../perfiles/perfiles.service';
 import { SociosService } from '../socios/socios.service';
 import { PagosService } from '../pagos/pagos.service';
@@ -45,12 +45,15 @@ export class MiCuentaService {
 
   async cambiarContrasena(socioId: string, actual: string, nueva: string) {
     const socio = await this.socios.buscarPorIdConContrasena(socioId);
-    if (!(await bcrypt.compare(actual, socio.contrasenaHash))) {
+    if (!(await compararContrasena(actual, socio.contrasenaHash))) {
       throw new BadRequestException({ message: 'La contraseña actual no es correcta.', campo: 'actual' });
     }
     if (actual === nueva) throw new BadRequestException('La contraseña nueva tiene que ser distinta de la actual.');
-    socio.contrasenaHash = await bcrypt.hash(nueva, 10);
+    socio.contrasenaHash = await cifrarContrasena(nueva);
     socio.debeCambiarContrasena = false;
+    // Cierra la sesión en los demás dispositivos: sus pases quedan con
+    // la versión anterior.
+    socio.versionSesion = (socio.versionSesion ?? 0) + 1;
     await this.socios.guardar(socio);
     await this.registro.registrar({
       socioId,
@@ -58,7 +61,7 @@ export class MiCuentaService {
       seccion: 'Contraseña',
       cambios: [{ campo: 'Contraseña', anterior: '••••••', nuevo: 'Cambiada por el socio' }],
     });
-    return { ok: true };
+    return socio;
   }
 
   async informarPago(socioId: string, datos: InformarPagoDto) {

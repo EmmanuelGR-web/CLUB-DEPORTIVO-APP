@@ -6,11 +6,14 @@
 // actualice con un solo pedido cada pocos segundos.
 // =====================================================================
 
-import { Body, Controller, Get, HttpCode, Param, ParseUUIDPipe, Patch, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, Param, ParseUUIDPipe, Patch, Post, Res, UseGuards } from '@nestjs/common';
+import type { Response } from 'express';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../comun/guards/jwt-auth.guard';
 import { UsuarioActual, UsuarioAutenticado } from '../../comun/decoradores/usuario-actual.decorator';
 import { MiCuentaService } from './mi-cuenta.service';
+import { AutenticacionService } from '../autenticacion/autenticacion.service';
+import { guardarCookieSesion } from '../autenticacion/sesion';
 import { CambiarContrasenaDto, GuardarCambiosDto, InformarPagoDto, MensajeDto } from './dto/mi-cuenta.dto';
 
 @ApiTags('Mi cuenta (socio)')
@@ -18,7 +21,10 @@ import { CambiarContrasenaDto, GuardarCambiosDto, InformarPagoDto, MensajeDto } 
 @UseGuards(JwtAuthGuard)
 @Controller('mi-cuenta')
 export class MiCuentaController {
-  constructor(private readonly miCuenta: MiCuentaService) {}
+  constructor(
+    private readonly miCuenta: MiCuentaService,
+    private readonly autenticacion: AutenticacionService,
+  ) {}
 
   @Get()
   @ApiOperation({ summary: 'Perfil completo del socio: datos, categoría, carnet y estado de cuenta' })
@@ -41,8 +47,11 @@ export class MiCuentaController {
   @Post('contrasena')
   @HttpCode(200)
   @ApiOperation({ summary: 'Cambia la contraseña verificando la actual' })
-  contrasena(@UsuarioActual() usuario: UsuarioAutenticado, @Body() datos: CambiarContrasenaDto) {
-    return this.miCuenta.cambiarContrasena(usuario.id, datos.actual, datos.nueva);
+  async contrasena(@UsuarioActual() usuario: UsuarioAutenticado, @Body() datos: CambiarContrasenaDto, @Res({ passthrough: true }) respuesta: Response) {
+    const socio = await this.miCuenta.cambiarContrasena(usuario.id, datos.actual, datos.nueva);
+    // Las demás sesiones se cerraron; esta sigue con un pase nuevo.
+    guardarCookieSesion(respuesta, this.autenticacion.emitirPase(socio, Boolean(usuario.recordar)), Boolean(usuario.recordar));
+    return { ok: true };
   }
 
   @Post('pagos')
