@@ -15,7 +15,7 @@ function LecturaDni({ lectura }) {
   const vencido = lectura.vencimiento && lectura.vencimiento < new Date(lectura.fecha).toISOString().slice(0, 10)
   return (
     <div className="bg-body-tertiary rounded-4 p-3 mb-3 small">
-      <div className="fw-bold text-uppercase text-secondary mb-2">DNI leído por IA</div>
+      <div className="fw-bold text-uppercase text-secondary mb-2">Datos leídos del DNI</div>
       {Object.entries(lectura.leidos).map(([campo, valor]) => (
         <div key={campo} className="mb-1">
           <strong>{nombresCampo[campo]}:</strong> {campo === 'fechaNacimiento' ? formatearFechaConAnio(valor) : valor}
@@ -28,7 +28,7 @@ function LecturaDni({ lectura }) {
           {vencido && ' (vencido)'}
         </div>
       )}
-      {lectura.observaciones && <div className="text-body-secondary mt-1">Observaciones de la IA: {lectura.observaciones}</div>}
+      {lectura.observaciones && <div className="text-body-secondary mt-1">Observaciones de la lectura: {lectura.observaciones}</div>}
       <div className="mt-2">
         {lectura.corregidos?.length ? 'Compará los datos corregidos con las fotos del DNI antes de autorizar.' : 'El socio no corrigió ningún dato leído.'}
       </div>
@@ -40,7 +40,7 @@ function VerificacionComprobante({ verificacion: v, repetida }) {
   if (!v.leido) {
     return (
       <Alert variant="light" className="small border">
-        No se pudo leer con IA{v.motivo ? `: ${v.motivo}` : '.'} Revisalo a mano.
+        No se pudo leer automáticamente{v.motivo ? `: ${v.motivo}` : '.'} Revisalo a mano.
       </Alert>
     )
   }
@@ -51,10 +51,10 @@ function VerificacionComprobante({ verificacion: v, repetida }) {
         {repetida
           ? 'Atención: este número de operación ya figura en otro comprobante.'
           : !v.esComprobante
-            ? 'La IA no reconoce el archivo como un comprobante de pago.'
+            ? 'El archivo no parece un comprobante de pago.'
             : v.coincideMonto
-              ? 'Verificado por IA: el monto coincide con la cuota.'
-              : 'Verificado por IA: el monto no coincide con la cuota.'}
+              ? 'Lectura del comprobante: el monto coincide con la cuota.'
+              : 'Lectura del comprobante: el monto no coincide con la cuota.'}
       </div>
       {v.esComprobante && (
         <>
@@ -70,7 +70,7 @@ function VerificacionComprobante({ verificacion: v, repetida }) {
           {v.destino && <div>Destino: {v.destino}</div>}
         </>
       )}
-      {v.observaciones && <div className="mt-1">Observaciones de la IA: {v.observaciones}</div>}
+      {v.observaciones && <div className="mt-1">Observaciones de la lectura: {v.observaciones}</div>}
     </Alert>
   )
 }
