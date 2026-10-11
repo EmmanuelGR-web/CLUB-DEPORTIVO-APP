@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { Container } from 'react-bootstrap'
 import RedesSociales from '../comun/RedesSociales'
 import Sponsors from '../comun/Sponsors'
@@ -14,7 +15,10 @@ const PiePagina = ({ children }) => {
         </div>
       )}
       <div className="bg-dark py-2">
-        <Container className="d-flex justify-content-end">
+        <Container className="d-flex flex-wrap align-items-center justify-content-between gap-2">
+          <Link href="/privacidad" className="small link-light link-opacity-75 link-opacity-100-hover">
+            Política de privacidad
+          </Link>
           <RedesSociales redes={redes} />
         </Container>
       </div>

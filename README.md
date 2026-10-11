@@ -42,7 +42,7 @@ Es la portada pública (`/`), la misma del proyecto C-DEPORTIVO, y desde ahí se
 
 ### Ingreso y registro
 
-- **Ingreso con acceso por roles:** cada usuario entra a su propio panel (`/socio`, `/empleado`, `/admin`) y las rutas están protegidas. Opción de **mantener la sesión iniciada** y **recuperar contraseña**. Un desplegable muestra los usuarios de prueba para entrar con un toque.
+- **Ingreso con acceso por roles:** cada usuario entra a su propio panel (`/socio`, `/empleado`, `/admin`) y las rutas están protegidas. Opción de **mantener la sesión iniciada** (30 días; si no, se cierra con el navegador) y **recuperar contraseña**. Un desplegable muestra los usuarios de prueba para entrar con un toque.
 - **Registro de nuevo socio:** al subir las fotos del DNI, la **IA de Gemini** (Google) lee el documento y completa nombre, apellido, DNI, fecha de nacimiento y domicilio, que el socio puede corregir; queda guardado qué leyó la IA y qué se corrigió. La selfie se saca con la cámara del dispositivo y queda para el carnet digital. El pago puede ser en efectivo o con tarjeta (Banco Nación, Banco Macro, Mercado Pago o Ualá), validando la marca, el número (algoritmo de Luhn), el vencimiento y el código según cada emisor. De la tarjeta solo se guardan la marca y los últimos 4 números. El socio queda **en validación** hasta que el personal revisa sus datos.
 
 ### Panel del socio
@@ -88,6 +88,34 @@ Es la portada pública (`/`), la misma del proyecto C-DEPORTIVO, y desde ahí se
 - **SweetAlert2** para errores, confirmaciones y avisos, con botones de Bootstrap y los colores del club.
 - **Diseño responsive** para celular, tablet y computadora: el menú lateral pasa a ser un panel desplegable, debajo de 992 px las tablas (padrón, facturación, personal, control del personal, noticias y beneficios) se muestran como listas, el título del panel se adapta al ancho y los formularios grandes ocupan toda la pantalla en el celular.
 
+### Seguridad y protección de datos
+
+- **Sesión en cookie protegida:** el pase de sesión (JWT) se guarda en una cookie `httpOnly`, `Secure` y `SameSite=Strict`. El código de la página no la puede leer, así que un script malicioso no tendría cómo robarla. El frontend le habla al backend por `/api` en su mismo dominio (reenvío de Next en `next.config.js`), por eso la cookie es propia del sitio.
+- **Protección contra pedidos falsificados (CSRF):** además de `SameSite=Strict`, todo pedido que cambia datos tiene que traer la cabecera `X-Club-Cliente`, que otra página no puede agregar.
+- **Sesiones revocables:** cada cuenta tiene una versión de sesión. Al cambiar o restablecer la contraseña sube, y se cierran las sesiones abiertas en otros dispositivos. Si a alguien del personal le cargan una licencia, o una cuenta se da de baja, pierde el acceso en el acto aunque tenga la sesión abierta.
+- **Contra la adivinación de contraseñas:**
+  - Después de 5 contraseñas incorrectas seguidas la cuenta queda bloqueada 15 minutos.
+  - Hay un límite de pedidos por red: 20 ingresos por minuto, 10 registros cada 10 minutos, 15 lecturas con IA por minuto y 150 pedidos por minuto en general (`@nestjs/throttler`).
+  - El mensaje de error es el mismo si el correo no existe o si la contraseña es otra, y la respuesta tarda lo mismo en los dos casos.
+- **Contraseñas:**
+  - Al menos 8 caracteres, con letras y números, controlado en el formulario y en el backend.
+  - Se guardan cifradas con bcrypt (costo 12).
+  - Cuando el personal da de alta o restablece una cuenta, se genera una contraseña temporal al azar (ya no el DNI), y el socio la cambia al entrar.
+- **Cabeceras de seguridad:**
+  - Política de contenido (CSP) que solo deja cargar recursos del propio sitio, Google Fonts y ESPN.
+  - HTTPS obligatorio (HSTS) y prohibido incrustar el sitio en otras páginas.
+  - La cámara solo se puede usar desde el propio sitio, y los demás permisos (micrófono, ubicación, pagos) están apagados.
+  - En el backend, con **helmet**.
+- **Base de datos:**
+  - *Row Level Security* activado en todas las tablas de Supabase, así su API pública no expone ningún dato; solo el backend accede.
+  - Conexión cifrada.
+  - Validación estricta de todo lo que llega, que rechaza campos de más.
+- **Tarjetas:** de la tarjeta solo se guardan el emisor, la marca y los últimos 4 números. El backend descarta cualquier otro dato aunque se lo manden.
+- **Ley 25.326 de Protección de Datos Personales:**
+  - [Política de privacidad](https://club-deportivo-app.vercel.app/privacidad) con el responsable, los datos que se guardan, para qué se usan, cómo se protegen y los derechos de acceso, rectificación y supresión.
+  - En el registro se acepta de forma expresa, y queda guardada la fecha.
+  - Cada cambio en una cuenta queda registrado con autor, fecha y valor anterior.
+
 ### Usuarios de prueba
 
 | Rol | Correo | Contraseña |
@@ -113,7 +141,8 @@ Pedro Díaz (A01) es el personal administrativo con usuario; la nómina trae a o
 | Backend | NestJS (Node.js) + TypeScript |
 | ORM | TypeORM |
 | Base de datos | PostgreSQL en **Supabase** |
-| Autenticación | JWT (JSON Web Tokens) + bcrypt |
+| Autenticación | JWT en cookie `httpOnly` + bcrypt |
+| Seguridad | **helmet**, **@nestjs/throttler**, Row Level Security de Supabase y CSP en Next |
 | Hosting backend | **Render** |
 | Hosting frontend | **Vercel** |
 
@@ -135,6 +164,7 @@ cp .env.example .env   # completar con los datos de Supabase
 npm run migrar -- migraciones/003_portal_del_socio.sql   # solo si la base viene de una versión anterior
 npm run migrar -- migraciones/004_personal_jornadas_noticias.sql   # personal, jornadas y noticias
 npm run migrar -- migraciones/005_beneficios.sql
+npm run migrar -- migraciones/006_seguridad.sql   # bloqueo por intentos, versión de sesión y RLS
 npm run sembrar        # opcional: carga los usuarios y socios de prueba
 npm run start:dev
 ```
@@ -151,10 +181,11 @@ npm run dev
 | Variable | Dónde | Para qué sirve |
 |---|---|---|
 | `DB_HOST`, `DB_PUERTO`, `DB_USUARIO`, `DB_CONTRASENA`, `DB_NOMBRE` | backend | Conexión a PostgreSQL (Supabase → *Project Settings → Database*) |
-| `JWT_SECRETO`, `JWT_EXPIRACION` | backend | Firma y duración de las sesiones |
+| `JWT_SECRETO` | backend | Clave para firmar los pases de sesión (obligatoria: sin ella el backend no arranca) |
+| `COOKIE_SEGURA` | backend | Opcional. `false` solo para probar por `http` desde otro equipo de la red local |
 | `GEMINI_API_KEY` | backend | Clave gratuita de [Google AI Studio](https://aistudio.google.com/apikey) para leer DNI y comprobantes (opcional: sin ella se completan a mano) |
 | `CORS_ORIGENES`, `DB_SSL` | backend | En producción: dominio del frontend y conexión cifrada a Supabase |
-| `NEXT_PUBLIC_API_URL` | frontend | URL del backend (local: `http://localhost:3000`) |
+| `NEXT_PUBLIC_API_URL` | frontend | URL del backend (local: `http://localhost:3000`). El navegador no la usa directo: Next reenvía `/api/*` a esa dirección |
 | `NEXT_PUBLIC_DEPORTES_EQUIPO`, `NEXT_PUBLIC_DEPORTES_LIGA`, `NEXT_PUBLIC_DEPORTES_NOMBRE_LIGA` | frontend | Opcionales. Equipo y liga de ESPN para el calendario (por defecto `17814` = San Martín de Tucumán, `arg.2` = Primera Nacional) |
 
 ## Flujo de trabajo con Git
@@ -171,13 +202,13 @@ Los mensajes de commit siguen la [guía de commits](docs/guia-commits.md).
 
 ## Despliegue
 
-- **Base de datos:** PostgreSQL de Supabase (plan gratuito). Las tablas se crean corriendo en orden los scripts de `backend/migraciones/` (`001` a `005`), desde el *SQL Editor* de Supabase o con `npm run migrar -- <archivo>`, que aplica cada script en una transacción. Los usuarios de prueba se cargan con `npm run sembrar` desde `backend/`; se puede repetir sin duplicar nada.
+- **Base de datos:** PostgreSQL de Supabase (plan gratuito). Las tablas se crean corriendo en orden los scripts de `backend/migraciones/` (`001` a `006`), desde el *SQL Editor* de Supabase o con `npm run migrar -- <archivo>`, que aplica cada script en una transacción. Los usuarios de prueba se cargan con `npm run sembrar` desde `backend/`; se puede repetir sin duplicar nada.
 - **Backend:** servicio web en Render, con raíz en `backend/`, comando de build `npm install && npm run build` y de inicio `npm run start:prod`. Las variables del backend se cargan en *Environment*.
-- **Frontend:** proyecto de Vercel con raíz en `frontend/` y la variable `NEXT_PUBLIC_API_URL` apuntando a la URL de Render.
+- **Frontend:** proyecto de Vercel con raíz en `frontend/` y la variable `NEXT_PUBLIC_API_URL` apuntando a la URL de Render. Vercel reenvía `/api/*` al backend, así la cookie de sesión queda en el dominio del sitio.
 - En Render, `CORS_ORIGENES` tiene la URL de Vercel para que solo el sitio publicado pueda usar la API.
 - **Producción sale de `main`:** Render publica solo esa rama y en Vercel es la rama de *Production*. Los push a `dev` generan en Vercel una vista previa con dirección propia, que no reemplaza al sitio publicado.
 - **Dirección para compartir:** [club-deportivo-app.vercel.app](https://club-deportivo-app.vercel.app/). Abre en la página informativa del club, desde donde se entra con **Ingresar**, y es la misma en cada publicación. La URL de Render es solo la API y las de Vercel con sufijo (`club-deportivo-app-xxxx.vercel.app`) son vistas previas.
-- **Varios usuarios a la vez:** el backend atiende todas las sesiones en paralelo, cada una con su token. El plan gratis de Render (512 MB) alcanza para demostraciones y pruebas con grupos chicos.
+- **Varios usuarios a la vez:** el backend atiende todas las sesiones en paralelo, cada una con su cookie de sesión. El plan gratis de Render (512 MB) alcanza para demostraciones y pruebas con grupos chicos.
 
 ### Backend siempre despierto
 

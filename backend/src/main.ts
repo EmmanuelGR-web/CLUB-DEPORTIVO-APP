@@ -13,7 +13,11 @@
 process.env.TZ = process.env.TZ || 'America/Argentina/Buenos_Aires';
 
 import { NestFactory } from '@nestjs/core';
-import { json } from 'express';
+import { json, NextFunction, Request, Response } from 'express';
+import helmet from 'helmet';
+import * as cookieParser from 'cookie-parser';
+import type { NestExpressApplication } from '@nestjs/platform-express';
+import { CABECERA_CLIENTE, COOKIE_SESION } from './modulos/autenticacion/sesion';
 import { ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
@@ -21,7 +25,32 @@ import { AppModule } from './app.module';
 
 async function iniciarAplicacion() {
   // Creamos la aplicación a partir del módulo raíz (AppModule).
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create<NestExpressApplication>(AppModule);
+
+  // Cabeceras de seguridad (helmet): HTTPS obligatorio por un año (HSTS),
+  // sin incrustar la API en otras páginas, sin adivinar tipos de archivo
+  // y sin anunciar que el servidor es Express.
+  app.use(
+    helmet({
+      hsts: { maxAge: 31_536_000, includeSubDomains: true },
+      // Swagger arma su página con estilos y scripts propios.
+      contentSecurityPolicy: { directives: { 'script-src': ["'self'", "'unsafe-inline'"], 'img-src': ["'self'", 'data:', 'https:'] } },
+    }),
+  );
+  // La sesión llega en una cookie: hay que leerla.
+  app.use(cookieParser());
+
+  // Defensa contra pedidos falsificados desde otras páginas (CSRF): si
+  // el pedido trae la cookie de sesión y cambia datos, tiene que venir
+  // con la cabecera propia del frontend del club.
+  app.use((peticion: Request, respuesta: Response, siguiente: NextFunction) => {
+    const cambiaDatos = !['GET', 'HEAD', 'OPTIONS'].includes(peticion.method);
+    if (cambiaDatos && peticion.cookies?.[COOKIE_SESION] && peticion.get(CABECERA_CLIENTE) !== 'web') {
+      respuesta.status(403).json({ statusCode: 403, message: 'Pedido rechazado por seguridad.' });
+      return;
+    }
+    siguiente();
+  });
 
   // Los comprobantes, adjuntos y fotos del DNI viajan como data URL
   // dentro del JSON: el límite por defecto (100 KB) no alcanza.
@@ -45,6 +74,7 @@ async function iniciarAplicacion() {
   app.enableCors({
     origin: origenes.length > 0 ? origenes : true,
     credentials: true,
+    allowedHeaders: ['Content-Type', 'Authorization', CABECERA_CLIENTE],
   });
 
   // ValidationPipe global: valida automáticamente TODOS los datos que

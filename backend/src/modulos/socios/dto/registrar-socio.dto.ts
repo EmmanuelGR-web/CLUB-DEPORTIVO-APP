@@ -6,7 +6,8 @@
 // (para que el personal vea qué se leyó y qué corrigió el socio).
 // =====================================================================
 
-import { IsEmail, IsObject, IsOptional, IsString, Matches, MaxLength, MinLength } from 'class-validator';
+import { Equals, IsEmail, IsObject, IsOptional, IsString, Matches, MaxLength, MinLength } from 'class-validator';
+import { MENSAJE_CONTRASENA, REGLA_CONTRASENA } from '../../../comun/utilidades/contrasenas.util';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class RegistrarSocioDto {
@@ -38,8 +39,8 @@ export class RegistrarSocioDto {
   @IsEmail({}, { message: 'Ingresá un correo electrónico válido.' })
   email: string;
 
-  @ApiProperty({ minLength: 6 })
-  @IsString() @MinLength(6, { message: 'La contraseña tiene que tener al menos 6 caracteres.' })
+  @ApiProperty({ minLength: 8, description: 'Al menos 8 caracteres, con letras y números' })
+  @IsString() @Matches(REGLA_CONTRASENA, { message: MENSAJE_CONTRASENA })
   contrasena: string;
 
   @ApiProperty({ description: 'Selfie para el carnet (data URL JPEG)' })
@@ -53,4 +54,8 @@ export class RegistrarSocioDto {
   @ApiPropertyOptional({ description: 'Lo que leyó la IA del DNI y qué campos se corrigieron' })
   @IsOptional() @IsObject()
   lecturaIA?: Record<string, unknown>;
+
+  @ApiProperty({ description: 'Aceptó la política de privacidad (Ley 25.326)' })
+  @Equals(true, { message: 'Para asociarte tenés que aceptar la política de privacidad.' })
+  aceptaPrivacidad: boolean;
 }
