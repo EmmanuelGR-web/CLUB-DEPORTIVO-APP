@@ -1,15 +1,16 @@
 'use client'
 
 import { useState } from 'react'
-import { Form, Row, Col, Button, Alert, Collapse, Spinner, Badge } from 'react-bootstrap'
+import { Form, Row, Col, Button, Alert, Collapse, Spinner, Modal } from 'react-bootstrap'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { FaIdCard, FaCreditCard, FaMoneyBillWave, FaCheckCircle, FaUserPlus, FaRobot, FaMagic } from 'react-icons/fa'
+import { FaIdCard, FaCreditCard, FaMoneyBillWave, FaCheckCircle, FaUserPlus } from 'react-icons/fa'
 import SubirImagen from './SubirImagen'
 import CamaraSelfie from './CamaraSelfie'
 import OpcionPago from './OpcionPago'
 import CampoContrasena from './CampoContrasena'
 import DatosTarjeta from './DatosTarjeta'
+import PoliticaPrivacidad from '../comun/PoliticaPrivacidad'
 import { contactoClub } from '../../datos/club'
 import { erroresTarjeta, resumirTarjeta, revisarNumeroTarjeta, tarjetaVacia } from '../../utilidades/tarjetas'
 import { camposCorregidos, leerConIA } from '../../utilidades/lecturaIA'
@@ -72,17 +73,10 @@ function Titulo({ children }) {
   return <h2 className="h6 fw-bold text-uppercase mb-3">{children}</h2>
 }
 
-function CampoTexto({ campo, valor, onCambiar, invalido, leido, mensaje }) {
+function CampoTexto({ campo, valor, onCambiar, invalido, mensaje }) {
   return (
     <Form.Group className="mb-3" controlId={`registro-${campo.nombre}`}>
-      <Form.Label className="d-flex align-items-center gap-2">
-        {campo.etiqueta} *
-        {leido !== undefined && (
-          <Badge bg={valor === leido ? 'warning' : 'light'} text="dark" className="d-inline-flex align-items-center gap-1">
-            <FaMagic aria-hidden="true" /> {valor === leido ? 'Leído por IA' : 'Corregido'}
-          </Badge>
-        )}
-      </Form.Label>
+      <Form.Label>{campo.etiqueta} *</Form.Label>
       <Form.Control
         type={campo.tipo ?? 'text'}
         inputMode={campo.inputMode}
@@ -109,6 +103,7 @@ function FormularioRegistro() {
   const [selfie, setSelfie] = useState(null)
   const [lectura, setLectura] = useState('pendiente')
   const [leidos, setLeidos] = useState({})
+  const [verPrivacidad, setVerPrivacidad] = useState(false)
   const [lecturaIA, setLecturaIA] = useState(null)
   const [avisoLectura, setAvisoLectura] = useState('')
   const [pago, setPago] = useState('')
@@ -281,7 +276,7 @@ function FormularioRegistro() {
                 ? '✓ Datos leídos. Revisalos a la derecha.'
                 : lectura === 'error'
                   ? 'No se pudo completar la lectura automática.'
-                  : 'Con las dos fotos, la IA lee tu DNI y completa tus datos personales.'}
+                  : 'Con las dos fotos completamos tus datos personales.'}
             </p>
 
             <Titulo>2. Foto de perfil *</Titulo>
@@ -320,9 +315,9 @@ function FormularioRegistro() {
 
             {lectura === 'pendiente' && (
               <div className="text-center text-white-50 py-5">
-                <FaRobot className="display-4 text-warning mb-3" aria-hidden="true" />
+                <FaIdCard className="display-4 text-warning mb-3" aria-hidden="true" />
                 <p className="mb-0">
-                  Subí el <strong className="text-white">frente y el dorso de tu DNI</strong> y nuestra IA va a completar tus datos automáticamente.
+                  Subí el <strong className="text-white">frente y el dorso de tu DNI</strong> y tus datos se completan solos.
                 </p>
               </div>
             )}
@@ -330,18 +325,12 @@ function FormularioRegistro() {
             {lectura === 'leyendo' && (
               <div className="text-center py-5" role="status">
                 <Spinner animation="grow" variant="warning" className="mb-3" />
-                <p className="mb-0">La IA está leyendo tu DNI…</p>
+                <p className="mb-0">Leyendo tu DNI…</p>
               </div>
             )}
 
             {['lista', 'error'].includes(lectura) && (
               <>
-                {lectura === 'lista' && (
-                  <Alert variant="light" className="small py-2 d-flex align-items-center gap-2">
-                    <FaMagic className="text-warning flex-shrink-0" aria-hidden="true" />
-                    Completamos estos datos con tu DNI. Si alguno está mal, podés corregirlo.
-                  </Alert>
-                )}
                 {avisoLectura && (
                   <Alert variant="warning" className="small py-2 d-flex flex-wrap align-items-center gap-2">
                     {avisoLectura}
@@ -360,7 +349,6 @@ function FormularioRegistro() {
                     valor={datos[campo.nombre]}
                     onCambiar={cambiar}
                     invalido={marcar(campo.nombre)}
-                    leido={leidos[campo.nombre]}
                     mensaje={duplicado === campo.nombre ? `Ya hay un socio registrado con este ${campo.etiqueta.toLowerCase()}.` : undefined}
                   />
                 ))}
@@ -406,9 +394,17 @@ function FormularioRegistro() {
                   label={
                     <>
                       Acepto los términos y condiciones del club y la{' '}
-                      <Link href="/privacidad" target="_blank" className="link-light fw-semibold">
+                      <button
+                        type="button"
+                        className="btn btn-link link-light fw-semibold p-0 align-baseline"
+                        onClick={(e) => {
+                          // Está dentro de la etiqueta del checkbox: sin esto lo marcaría.
+                          e.preventDefault()
+                          setVerPrivacidad(true)
+                        }}
+                      >
                         política de privacidad
-                      </Link>
+                      </button>
                     </>
                   }
                 />
@@ -434,6 +430,27 @@ function FormularioRegistro() {
           </div>
         </Col>
       </Row>
+
+      <Modal show={verPrivacidad} onHide={() => setVerPrivacidad(false)} size="lg" centered scrollable fullscreen="sm-down" data-bs-theme="light">
+        <Modal.Header closeButton>
+          <Modal.Title className="h5 fw-bold text-secondary">Política de privacidad</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <PoliticaPrivacidad />
+        </Modal.Body>
+        <Modal.Footer>
+          <Button
+            variant="secondary"
+            className="rounded-pill px-4"
+            onClick={() => {
+              setTerminos(true)
+              setVerPrivacidad(false)
+            }}
+          >
+            Entendido, acepto
+          </Button>
+        </Modal.Footer>
+      </Modal>
     </Form>
   )
 }
