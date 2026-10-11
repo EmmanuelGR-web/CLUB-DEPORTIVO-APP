@@ -1,5 +1,6 @@
 import { Body, Controller, HttpCode, Module, Post } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { Throttle } from '@nestjs/throttler';
 import { IsArray, IsIn, IsObject, IsOptional } from 'class-validator';
 import { IaService } from './ia.service';
 
@@ -18,6 +19,8 @@ export class IaController {
 
   @Post('leer-documento')
   @HttpCode(200)
+  // Cada lectura consume la cuota gratuita de Gemini.
+  @Throttle({ general: { limit: 15, ttl: 60_000 } })
   @ApiOperation({ summary: 'Lee un DNI (frente y dorso) o un comprobante de pago con Gemini' })
   leer(@Body() datos: LecturaDto) {
     return this.ia.leer(datos.tipo, datos.archivos, datos.contexto?.hoy);

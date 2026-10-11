@@ -5,6 +5,7 @@ import { Row, Col, Form, Button, Alert, Collapse } from 'react-bootstrap'
 import Tarjeta from '../comun/Tarjeta'
 import CampoContrasena from '../auth/CampoContrasena'
 import { cambiarContrasenaApi } from '../../servicios/cuentaApi'
+import { contrasenaValida, mensajeContrasena } from '../../utilidades/validaciones'
 
 const vacio = { actual: '', nueva: '', repetir: '' }
 
@@ -17,7 +18,7 @@ function CambiarContrasena({ socio, onCambiada }) {
 
   const errores = {
     actual: !valores.actual || actualIncorrecta,
-    nueva: valores.nueva.length < 6 || valores.nueva === valores.actual,
+    nueva: !contrasenaValida(valores.nueva) || valores.nueva === valores.actual,
     repetir: valores.repetir !== valores.nueva || !valores.repetir,
   }
   const cambiar = (campo) => (valor) => {
@@ -47,7 +48,7 @@ function CambiarContrasena({ socio, onCambiada }) {
     <Tarjeta titulo="Contraseña" className="mb-4">
       {socio.debeCambiarContrasena && (
         <Alert variant="warning" className="small">
-          Tu contraseña actual es tu <strong>número de DNI</strong>. Te recomendamos cambiarla por una propia.
+          Estás usando una <strong>contraseña temporal</strong> que te dio el club. Cambiala por una propia.
         </Alert>
       )}
       {aviso && (
@@ -84,7 +85,7 @@ function CambiarContrasena({ socio, onCambiada }) {
                   valor={valores.nueva}
                   onCambiar={cambiar('nueva')}
                   invalido={validado && errores.nueva}
-                  mensaje="Al menos 6 caracteres y distinta de la actual."
+                  mensaje={`${mensajeContrasena} Distinta de la actual.`}
                 />
               </Col>
               <Col md={4}>

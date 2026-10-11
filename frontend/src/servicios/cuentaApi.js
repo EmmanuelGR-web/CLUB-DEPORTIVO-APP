@@ -1,8 +1,12 @@
 // Pedidos del socio a su propia cuenta (rutas /mi-cuenta del backend).
 import { pedir } from './api'
 
-export const iniciarSesionApi = (email, contrasena) =>
-  pedir('/autenticacion/login', { metodo: 'POST', datos: { email, contrasena }, conSesion: false })
+export const iniciarSesionApi = (email, contrasena, recordar) =>
+  pedir('/autenticacion/login', { metodo: 'POST', datos: { email, contrasena, recordar }, conSesion: false })
+
+export const obtenerSesionApi = () => pedir('/autenticacion/sesion', { conSesion: false })
+
+export const cerrarSesionApi = () => pedir('/autenticacion/logout', { metodo: 'POST', conSesion: false })
 
 export const registrarSocio = (datos) => pedir('/autenticacion/registro', { metodo: 'POST', datos, conSesion: false })
 

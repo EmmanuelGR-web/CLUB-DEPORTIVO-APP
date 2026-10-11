@@ -24,12 +24,12 @@ function FormularioLogin() {
   const [ingresando, setIngresando] = useState(false)
 
   const emailInvalido = validado && !/^\S+@\S+\.\S+$/.test(email)
-  const contrasenaInvalida = validado && contrasena.length < 6
+  const contrasenaInvalida = validado && contrasena.length === 0
 
   const enviar = async (e) => {
     e.preventDefault()
     setValidado(true)
-    if (!/^\S+@\S+\.\S+$/.test(email) || contrasena.length < 6) return
+    if (!/^\S+@\S+\.\S+$/.test(email) || contrasena.length === 0) return
 
     setIngresando(true)
     const usuario = await iniciarSesion(email, contrasena, recordar)
@@ -92,7 +92,7 @@ function FormularioLogin() {
             {verContrasena ? <FaEyeSlash /> : <FaEye />}
           </Button>
           <Form.Control.Feedback type="invalid" className="text-warning fw-semibold">
-            La contraseña tiene al menos 6 caracteres.
+            Ingresá tu contraseña.
           </Form.Control.Feedback>
         </FloatingLabel>
 

@@ -3,74 +3,89 @@
 // =====================================================================
 // SesionContexto.jsx
 // -----------------------------------------------------------------------
-// Sesión del usuario en todo el portal. Si marca "Mantener sesión
-// iniciada" se guarda en localStorage (sobrevive a cerrar el
-// navegador); si no, en sessionStorage (dura hasta cerrar la pestaña).
+// Sesión del usuario en todo el portal. El pase de sesión lo guarda el
+// navegador en una cookie httpOnly que pone el backend: el código de la
+// página nunca lo ve. Acá solo se guardan los datos para mostrar (nombre,
+// rol, panel), que se piden al backend al abrir el sitio.
+// "Mantener sesión iniciada" hace que la cookie dure 30 días; si no, se
+// borra al cerrar el navegador.
 // =====================================================================
 
-import { createContext, useCallback, useContext, useEffect, useState } from 'react'
+import { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { CLAVE_SESION, configurarVencimiento, leerSesionGuardada } from '../servicios/api'
-import { iniciarSesionApi } from '../servicios/cuentaApi'
+import { configurarVencimiento } from '../servicios/api'
+import { cerrarSesionApi, iniciarSesionApi, obtenerSesionApi } from '../servicios/cuentaApi'
 import { alertaAviso } from '../utilidades/alertas'
 
 const SesionContexto = createContext(null)
+
+// Las versiones anteriores guardaban el pase en el almacenamiento del
+// navegador: se borra para que no quede expuesto.
+const borrarSesionAnterior = () => {
+  try {
+    localStorage.removeItem('sesionClub')
+    sessionStorage.removeItem('sesionClub')
+  } catch {
+    // Sin almacenamiento no hay nada que borrar.
+  }
+}
 
 export function SesionProveedor({ children }) {
   const router = useRouter()
   const [usuario, setUsuario] = useState(null)
   const [lista, setLista] = useState(false)
+  const conSesion = useRef(false)
+  conSesion.current = Boolean(usuario)
 
   useEffect(() => {
-    setUsuario(leerSesionGuardada()?.usuario ?? null)
-    setLista(true)
+    borrarSesionAnterior()
+    let vigente = true
+    obtenerSesionApi()
+      .then((datos) => vigente && setUsuario(datos?.usuario ?? null))
+      .catch(() => vigente && setUsuario(null))
+      .finally(() => vigente && setLista(true))
+    return () => {
+      vigente = false
+    }
   }, [])
 
-  const cerrarSesion = useCallback(() => {
-    try {
-      localStorage.removeItem(CLAVE_SESION)
-      sessionStorage.removeItem(CLAVE_SESION)
-    } catch {
-      // Sin almacenamiento no hay nada que borrar.
-    }
+  const cerrarSesion = useCallback(async () => {
     setUsuario(null)
+    try {
+      await cerrarSesionApi()
+    } catch {
+      // Si el servidor no responde, la cookie vence sola.
+    }
   }, [])
 
   useEffect(() => {
     configurarVencimiento(() => {
-      cerrarSesion()
+      if (!conSesion.current) return
+      conSesion.current = false
+      setUsuario(null)
       router.replace('/login')
       alertaAviso('Por seguridad cerramos tu sesión. Volvé a ingresar.', 'Tu sesión venció')
     })
-  }, [cerrarSesion, router])
+  }, [router])
 
   // Devuelve los datos del usuario, null si las credenciales no son
-  // correctas, { bloqueado } si el personal está de licencia o
-  // { errorConexion } si el servidor no respondió.
+  // correctas, { bloqueado } si el personal está de licencia o la cuenta
+  // quedó bloqueada por intentos fallidos, o { errorConexion } si el
+  // servidor no respondió.
   const iniciarSesion = async (email, contrasena, recordar) => {
     try {
-      const { tokenAcceso, usuario: datos } = await iniciarSesionApi(email.trim().toLowerCase(), contrasena)
-      const almacen = recordar ? localStorage : sessionStorage
-      almacen.setItem(CLAVE_SESION, JSON.stringify({ token: tokenAcceso, usuario: datos }))
+      const { usuario: datos } = await iniciarSesionApi(email.trim().toLowerCase(), contrasena, Boolean(recordar))
       setUsuario(datos)
       return datos
     } catch (problema) {
       if (problema.estado === 403 && problema.datos?.bloqueo) return { bloqueado: problema.message }
+      if (problema.estado === 429) return { bloqueado: problema.message }
       if (problema.estado === 401) return problema.message.includes('baja') ? { errorConexion: problema.message } : null
       return { errorConexion: problema.message }
     }
   }
 
-  const actualizarUsuario = (cambios) => {
-    setUsuario((actual) => {
-      if (!actual) return actual
-      const nuevo = { ...actual, ...cambios }
-      const sesion = leerSesionGuardada()
-      const almacen = localStorage.getItem(CLAVE_SESION) ? localStorage : sessionStorage
-      almacen.setItem(CLAVE_SESION, JSON.stringify({ ...sesion, usuario: nuevo }))
-      return nuevo
-    })
-  }
+  const actualizarUsuario = (cambios) => setUsuario((actual) => (actual ? { ...actual, ...cambios } : actual))
 
   return (
     <SesionContexto.Provider value={{ usuario, lista, iniciarSesion, cerrarSesion, actualizarUsuario }}>{children}</SesionContexto.Provider>
