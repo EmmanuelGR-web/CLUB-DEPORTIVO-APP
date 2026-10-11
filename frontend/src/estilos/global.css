@@ -348,3 +348,39 @@ body {
   aspect-ratio: 16 / 9;
   object-fit: cover;
 }
+
+/* ---------- Página de inicio ---------- */
+
+/* En el modo oscuro, los botones grafito de la página de inicio se
+   aclaran para no perderse sobre las tarjetas. */
+[data-bs-theme='dark'] .btn-dark {
+  --bs-btn-bg: #3a3442;
+  --bs-btn-border-color: #4a4352;
+  --bs-btn-hover-bg: var(--club-rojo);
+  --bs-btn-hover-border-color: var(--club-rojo);
+  --bs-btn-active-bg: var(--club-rojo-hover);
+  --bs-btn-active-border-color: var(--club-rojo-hover);
+  --bs-btn-disabled-bg: #2b2632;
+  --bs-btn-disabled-border-color: #2b2632;
+}
+
+[data-bs-theme='dark'] .btn-outline-dark {
+  --bs-btn-color: #e9e4ee;
+  --bs-btn-border-color: rgba(233, 228, 238, 0.4);
+  --bs-btn-hover-color: var(--club-grafito);
+  --bs-btn-hover-bg: #e9e4ee;
+  --bs-btn-hover-border-color: #e9e4ee;
+  --bs-btn-active-color: var(--club-grafito);
+  --bs-btn-active-bg: #e9e4ee;
+  --bs-btn-disabled-color: rgba(233, 228, 238, 0.35);
+  --bs-btn-disabled-border-color: rgba(233, 228, 238, 0.2);
+}
+
+
+/* Las alertas toman el fondo del modo oscuro: los títulos y textos usan
+   los colores del tema y sobre el blanco de SweetAlert no se leían. */
+[data-bs-theme='dark'] .swal2-popup {
+  background: #1f1b24;
+  color: #e9e4ee;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}

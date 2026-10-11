@@ -2,7 +2,9 @@
 
 import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { Row, Col, Image } from 'react-bootstrap'
+import Link from 'next/link'
+import { Row, Col, Image, Button } from 'react-bootstrap'
+import { FaArrowLeft } from 'react-icons/fa'
 import { useTituloPagina } from '@/hooks/useTituloPagina'
 import { useSesion } from '@/contextos/SesionContexto'
 import { useEsEscritorio } from '@/hooks/useEsEscritorio'
@@ -45,6 +47,16 @@ export default function PaginaLogin() {
 
   const formulario = (
     <div className="w-100 m-auto" style={{ maxWidth: 400 }}>
+      <Button
+        as={Link}
+        href="/"
+        variant="outline-light"
+        size="sm"
+        className="rounded-pill px-3 d-inline-flex align-items-center gap-2 border-opacity-25 mb-3"
+      >
+        <FaArrowLeft aria-hidden="true" /> Volver al inicio
+      </Button>
+
       <header className="text-center mb-3">
         <span className="d-block fw-bolder text-uppercase fs-4">Club Deportivo</span>
         <Image src="/logo.png" alt="Escudo del Club Deportivo" width={90} height={90} className="object-fit-cover my-2" />
