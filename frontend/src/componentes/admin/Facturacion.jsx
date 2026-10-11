@@ -78,7 +78,7 @@ function Facturacion({ perfiles, autor, onAbrirFicha }) {
                 {pago.comprobante && <Adjunto archivo={pago.comprobante} texto="Ver comprobante" className="small link-secondary" />}
                 {pago.informe?.verificacionIA?.leido && (
                   <span className={`small ${pago.informe.verificacionIA.coincideMonto ? 'text-success' : 'text-danger'}`}>
-                    IA: {pago.informe.verificacionIA.coincideMonto ? 'monto coincide' : 'monto no coincide'}
+                    Comprobante: {pago.informe.verificacionIA.coincideMonto ? 'monto coincide' : 'monto no coincide'}
                   </span>
                 )}
                 <Button size="sm" variant="outline-secondary" className="rounded-pill px-3 ms-auto" onClick={() => onAbrirFicha(perfil.id)}>
@@ -133,7 +133,7 @@ function Facturacion({ perfiles, autor, onAbrirFicha }) {
                   {pago.comprobante && <Adjunto archivo={pago.comprobante} texto="Ver comprobante" className="d-block small link-secondary mt-1" />}
                   {pago.informe?.verificacionIA?.leido && (
                     <div className={`small ${pago.informe.verificacionIA.coincideMonto ? 'text-success' : 'text-danger'}`}>
-                      IA: {pago.informe.verificacionIA.coincideMonto ? 'monto coincide' : 'monto no coincide'}
+                      Comprobante: {pago.informe.verificacionIA.coincideMonto ? 'monto coincide' : 'monto no coincide'}
                     </div>
                   )}
                 </td>

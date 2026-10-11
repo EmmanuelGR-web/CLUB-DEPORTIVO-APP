@@ -100,7 +100,7 @@ export class IaService {
 
   async leer(tipo: 'dni' | 'comprobante', archivos: { dataUrl: string }[], hoy?: string) {
     const clave = this.config.get<string>('GEMINI_API_KEY');
-    if (!clave) throw new ServiceUnavailableException('La lectura con IA no está configurada en este servidor.');
+    if (!clave) throw new ServiceUnavailableException('La lectura automática no está disponible en este momento.');
 
     const cantidad = tipo === 'dni' ? 2 : 1;
     if (!Array.isArray(archivos) || archivos.length !== cantidad) throw new BadRequestException('Faltan las imágenes del documento.');
@@ -130,22 +130,22 @@ export class IaService {
         if (!REINTENTABLES.includes(respuesta.status)) break;
       }
     } catch {
-      throw new HttpException('No pudimos conectar con el servicio de IA.', HttpStatus.BAD_GATEWAY);
+      throw new HttpException('No pudimos leer el documento en este momento. Probá de nuevo.', HttpStatus.BAD_GATEWAY);
     }
 
-    if (!respuesta) throw new HttpException('No pudimos conectar con el servicio de IA.', HttpStatus.BAD_GATEWAY);
+    if (!respuesta) throw new HttpException('No pudimos leer el documento en este momento. Probá de nuevo.', HttpStatus.BAD_GATEWAY);
     if (respuesta.status === 429) {
-      throw new HttpException('Se alcanzó el límite gratuito de lecturas por minuto. Probá de nuevo en un rato.', HttpStatus.TOO_MANY_REQUESTS);
+      throw new HttpException('Hay muchas lecturas en curso. Probá de nuevo en un rato.', HttpStatus.TOO_MANY_REQUESTS);
     }
-    if (respuesta.status === 503) throw new ServiceUnavailableException('El servicio de IA está saturado en este momento. Probá de nuevo en unos minutos.');
-    if (!respuesta.ok) throw new HttpException('El servicio de IA no pudo leer el documento. Probá de nuevo.', HttpStatus.BAD_GATEWAY);
+    if (respuesta.status === 503) throw new ServiceUnavailableException('La lectura está demorada en este momento. Probá de nuevo en unos minutos.');
+    if (!respuesta.ok) throw new HttpException('No pudimos leer el documento. Probá de nuevo.', HttpStatus.BAD_GATEWAY);
 
     const datos: any = await respuesta.json();
     let lectura: any;
     try {
       lectura = JSON.parse(datos.candidates?.[0]?.content?.parts?.find((parte: any) => parte.text)?.text ?? '');
     } catch {
-      throw new HttpException('La IA no devolvió datos.', HttpStatus.BAD_GATEWAY);
+      throw new HttpException('No pudimos leer el documento. Probá de nuevo.', HttpStatus.BAD_GATEWAY);
     }
     return tipo === 'dni' ? ordenarDni(lectura) : ordenarComprobante(lectura);
   }

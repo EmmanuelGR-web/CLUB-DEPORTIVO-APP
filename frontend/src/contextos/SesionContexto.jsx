@@ -16,6 +16,7 @@ import { useRouter } from 'next/navigation'
 import { configurarVencimiento } from '../servicios/api'
 import { cerrarSesionApi, iniciarSesionApi, obtenerSesionApi } from '../servicios/cuentaApi'
 import { alertaAviso } from '../utilidades/alertas'
+import { useRegistrarNavegacion } from '../hooks/useNavegacionInterna'
 
 const SesionContexto = createContext(null)
 
@@ -32,6 +33,7 @@ const borrarSesionAnterior = () => {
 
 export function SesionProveedor({ children }) {
   const router = useRouter()
+  useRegistrarNavegacion()
   const [usuario, setUsuario] = useState(null)
   const [lista, setLista] = useState(false)
   const conSesion = useRef(false)
