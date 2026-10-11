@@ -167,7 +167,7 @@ function InformarPago({ cuota, onInformar }) {
             </Row>
             {lectura?.estado === 'leyendo' && (
               <div className="d-flex align-items-center gap-2 small mt-3" role="status">
-                <Spinner animation="border" size="sm" variant="secondary" /> La IA está leyendo tu comprobante…
+                <Spinner animation="border" size="sm" variant="secondary" /> Leyendo tu comprobante…
               </div>
             )}
             {lectura?.estado === 'error' && (
@@ -183,8 +183,8 @@ function InformarPago({ cuota, onInformar }) {
                   {!lectura.esComprobante
                     ? 'El archivo no parece un comprobante de pago.'
                     : coincide
-                      ? 'Leído por IA: el monto coincide con tu cuota.'
-                      : 'Leído por IA: el monto no coincide con tu cuota.'}
+                      ? 'El monto coincide con tu cuota.'
+                      : 'El monto no coincide con tu cuota.'}
                 </div>
                 {lectura.esComprobante && (
                   <div>
