@@ -28,8 +28,8 @@ function BotonRed({ nombre, url, icono: Icono }) {
 
 function RedesSociales({ redes, titulo = 'Redes sociales' }) {
   return (
-    <div className="d-flex align-items-center gap-2 flex-wrap">
-      <span className="text-uppercase small fw-semibold me-2">{titulo}</span>
+    <div className="d-flex align-items-center gap-2 flex-nowrap">
+      <span className="d-none d-sm-inline text-uppercase small fw-semibold me-2">{titulo}</span>
       {redes.map((red) => (
         <BotonRed key={red.id} {...red} />
       ))}
