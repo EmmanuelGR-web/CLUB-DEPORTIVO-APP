@@ -2,6 +2,8 @@
 
 import { useState } from 'react'
 
+// El bordó del ícono va fijo: en el modo oscuro .text-secondary se aclara
+// y se perdería sobre el círculo blanco.
 function BotonRed({ nombre, url, icono: Icono }) {
   const [encima, setEncima] = useState(false)
 
@@ -15,9 +17,9 @@ function BotonRed({ nombre, url, icono: Icono }) {
       onMouseEnter={() => setEncima(true)}
       onMouseLeave={() => setEncima(false)}
       className={`d-inline-flex align-items-center justify-content-center rounded-circle p-2 fs-5 ${
-        encima ? 'bg-warning text-dark shadow' : 'bg-white text-secondary'
+        encima ? 'bg-warning text-dark shadow' : 'bg-white'
       }`}
-      style={{ transition: 'transform 200ms ease', transform: encima ? 'translateY(-3px)' : 'none' }}
+      style={{ transition: 'transform 200ms ease', transform: encima ? 'translateY(-3px)' : 'none', color: encima ? undefined : 'var(--club-bordo)' }}
     >
       <Icono />
     </a>

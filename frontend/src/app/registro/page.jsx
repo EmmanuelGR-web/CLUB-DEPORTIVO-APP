@@ -17,12 +17,12 @@ export default function PaginaRegistro() {
         <Container style={{ maxWidth: 1080 }}>
           <Button
             as={Link}
-            href="/login"
+            href="/"
             variant="outline-light"
             size="sm"
             className="rounded-pill px-3 d-inline-flex align-items-center gap-2 border-opacity-25 mb-4"
           >
-            <FaArrowLeft aria-hidden="true" /> Volver al ingreso
+            <FaArrowLeft aria-hidden="true" /> Volver al inicio
           </Button>
 
           <header className="d-flex align-items-center gap-3 mb-4">

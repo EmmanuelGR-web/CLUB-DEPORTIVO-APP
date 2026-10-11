@@ -21,10 +21,24 @@ El portal reproduce el sistema que armé en el [proyecto C-DEPORTIVO](https://gi
 - [x] **Fase 1** — Esqueleto backend (NestJS) + base de datos (PostgreSQL) + autenticación con roles
 - [x] **Fase 2** — Módulo de socios (carnet, código de barras, antigüedad y categoría)
 - [x] **Fase 3** — Módulo de pagos y cuotas con aprobación administrativa y comprobantes
-- [ ] Fase 4 — Información del club (fixture, plantel, historia, museo, complejo)
+- [x] **Fase 4** — Página informativa del club: historia, noticias, calendario y tabla, disciplinas, galería y contacto
 - [x] **Fase 5** — Frontend con React Bootstrap: portal del socio, panel del personal y panel del administrador principal
 
 ## Funcionalidades
+
+### Página informativa del club
+
+Es la portada pública (`/`), la misma del proyecto C-DEPORTIVO, y desde ahí se entra al portal.
+
+- **Telón y portada:** al abrir la página se levanta un telón con la foto de la hinchada, y debajo arranca un video del estadio con el botón **Asociate**. Una barra de progreso muestra cuánto se leyó (arriba en escritorio, abajo en el celular) y un botón vuelve al principio.
+- **Menú lateral:** salta a cada sección, tiene el interruptor del **modo oscuro** y el botón **Ingresar** (o **Mi panel** si ya hay una sesión abierta).
+- **Reseña histórica:** resumen de los más de 100 años del club y una **revista digital** de 10 páginas que se hojea como un libro, con el dedo, el mouse o las flechas (**react-pageflip**).
+- **Noticias:** son las mismas que publican el personal y la administración principal desde sus paneles. Lo que se crea, edita o borra se ve en el acto, y cada noticia se abre completa con su imagen.
+- **Calendario y tabla de posiciones:** últimos resultados, próximos partidos y tabla por zona de la Primera Nacional, con datos en vivo de la API pública de **ESPN**. Cada partido muestra fecha, hora, estadio y resultado.
+- **Disciplinas:** mazo de cartas de fútbol, básquet, vóley, hockey, natación y tenis, con categorías y horarios. Se pasan deslizando o desde los botones de cada deporte.
+- **Galería:** carrusel con las fotos históricas del club.
+- **Contacto:** dirección, teléfono, correo y horarios, con formulario de consulta validado.
+- **Responsive y modo oscuro:** se revisó en anchos de 360 a 1280 px sin desbordes. Las hojas de la revista quedan siempre en blanco, como el papel.
 
 ### Ingreso y registro
 
@@ -92,6 +106,8 @@ Pedro Díaz (A01) es el personal administrativo con usuario; la nómina trae a o
 | Diseño | **Bootstrap 5.3** y **React Bootstrap** |
 | Avisos | **SweetAlert2** con botones de Bootstrap y los colores del club |
 | Íconos | **React Icons** |
+| Revista digital | **react-pageflip** |
+| Resultados de fútbol | API pública de **ESPN**, consultada desde el navegador |
 | Carnet y PDF | **qrcode.react** (QR del carnet), **jsPDF** y **jspdf-autotable** (credencial y estado de cuenta) |
 | Lectura de documentos | **API de Gemini** (Google, plan gratuito), llamada desde el backend |
 | Backend | NestJS (Node.js) + TypeScript |
@@ -139,6 +155,7 @@ npm run dev
 | `GEMINI_API_KEY` | backend | Clave gratuita de [Google AI Studio](https://aistudio.google.com/apikey) para leer DNI y comprobantes (opcional: sin ella se completan a mano) |
 | `CORS_ORIGENES`, `DB_SSL` | backend | En producción: dominio del frontend y conexión cifrada a Supabase |
 | `NEXT_PUBLIC_API_URL` | frontend | URL del backend (local: `http://localhost:3000`) |
+| `NEXT_PUBLIC_DEPORTES_EQUIPO`, `NEXT_PUBLIC_DEPORTES_LIGA`, `NEXT_PUBLIC_DEPORTES_NOMBRE_LIGA` | frontend | Opcionales. Equipo y liga de ESPN para el calendario (por defecto `17814` = San Martín de Tucumán, `arg.2` = Primera Nacional) |
 
 ## Flujo de trabajo con Git
 
@@ -159,7 +176,7 @@ Los mensajes de commit siguen la [guía de commits](docs/guia-commits.md).
 - **Frontend:** proyecto de Vercel con raíz en `frontend/` y la variable `NEXT_PUBLIC_API_URL` apuntando a la URL de Render.
 - En Render, `CORS_ORIGENES` tiene la URL de Vercel para que solo el sitio publicado pueda usar la API.
 - **Producción sale de `main`:** Render publica solo esa rama y en Vercel es la rama de *Production*. Los push a `dev` generan en Vercel una vista previa con dirección propia, que no reemplaza al sitio publicado.
-- **Dirección para compartir:** [club-deportivo-app.vercel.app](https://club-deportivo-app.vercel.app/). Abre en el ingreso y es la misma en cada publicación. La URL de Render es solo la API y las de Vercel con sufijo (`club-deportivo-app-xxxx.vercel.app`) son vistas previas.
+- **Dirección para compartir:** [club-deportivo-app.vercel.app](https://club-deportivo-app.vercel.app/). Abre en la página informativa del club, desde donde se entra con **Ingresar**, y es la misma en cada publicación. La URL de Render es solo la API y las de Vercel con sufijo (`club-deportivo-app-xxxx.vercel.app`) son vistas previas.
 - **Varios usuarios a la vez:** el backend atiende todas las sesiones en paralelo, cada una con su token. El plan gratis de Render (512 MB) alcanza para demostraciones y pruebas con grupos chicos.
 
 ### Backend siempre despierto
@@ -208,15 +225,16 @@ club-deportivo/
 │           ├── beneficios/     → beneficios para socios
 │           └── socios/         → acceso a la tabla de socios
 ├── frontend/                 → Aplicación web (Next.js)
-│   ├── public/                → escudo y fotos del club
+│   ├── public/                → escudo, fotos, video del estadio, revista y disciplinas
 │   └── src/
-│       ├── app/               → rutas: login, registro, socio, empleado, admin
+│       ├── app/               → rutas: inicio (/), login, registro, socio, empleado, admin
 │       ├── componentes/
 │       │   ├── auth/           → ingreso, registro, cámara, tarjeta
 │       │   ├── comun/          → tarjetas, estados, adjuntos, modo oscuro, canal interno
 │       │   ├── empleado/       → solicitudes, ficha del socio, jornada, registro de cambios
+│       │   ├── inicio/         → telón, video, revista, calendario, disciplinas, galería, contacto
 │       │   ├── admin/          → personal, control en vivo, facturación, resumen económico, noticias
-│       │   ├── layout/         → barra lateral y estructura de los paneles
+│       │   ├── layout/         → menú del inicio, barra lateral y estructura de los paneles
 │       │   ├── paneles/        → panel de cada rol
 │       │   └── socio/          → carnet, pagos, datos personales, bandeja
 │       ├── contextos/         → sesión y tema
