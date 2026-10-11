@@ -15,7 +15,8 @@ const PiePagina = ({ children }) => {
         </div>
       )}
       <div className="bg-dark py-2">
-        <Container className="d-flex flex-wrap align-items-center justify-content-between gap-2">
+        {/* En el celular el link va arriba y los íconos solos en su fila, para que entren en pantallas angostas. */}
+        <Container className="d-flex flex-column flex-sm-row align-items-center justify-content-between gap-2">
           <Link href="/privacidad" className="small link-light link-opacity-75 link-opacity-100-hover">
             Política de privacidad
           </Link>
