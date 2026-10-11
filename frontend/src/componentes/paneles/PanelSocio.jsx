@@ -124,7 +124,7 @@ function ContenidoSocio({ datos, recargar, actualizado, cambiarDatos }) {
           )}
           {socio.debeCambiarContrasena && (
             <Alert variant="warning" className="d-flex flex-wrap align-items-center gap-2">
-              Tu contraseña actual es tu número de DNI. Te recomendamos cambiarla por una propia.
+              Estás usando una contraseña temporal que te dio el club. Cambiala por una propia.
               <Button size="sm" variant="secondary" className="rounded-pill ms-auto" onClick={() => setSeccion('datos')}>
                 Cambiarla ahora
               </Button>

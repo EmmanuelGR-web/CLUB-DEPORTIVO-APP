@@ -42,9 +42,9 @@ function FichaSocio({ socioId, onVolver, onCambio, puedeDarDeBaja = false }) {
   const restablecer = async () => {
     setConfirmar(false)
     try {
-      const { dni, perfil, historial } = await restablecerContrasenaApi(socioId)
+      const { contrasena, perfil, historial } = await restablecerContrasenaApi(socioId)
       setFicha({ perfil, historial })
-      setAviso(`Listo. ${perfil.nombreCompleto} ya puede ingresar con su DNI (${dni}) como contraseña. Al entrar se le va a sugerir cambiarla.`)
+      setAviso(`Listo. La contraseña temporal de ${perfil.nombreCompleto} es ${contrasena}. Dásela en persona: no se vuelve a mostrar. Al entrar se le va a pedir cambiarla.`)
       onCambio()
     } catch (problema) {
       alertaError(problema.message, 'No se pudo restablecer la contraseña')
@@ -127,9 +127,9 @@ function FichaSocio({ socioId, onVolver, onCambio, puedeDarDeBaja = false }) {
 
       <Tarjeta titulo="Acceso al portal" className="mb-4">
         <p className="small text-body-secondary">
-          Si el socio no recuerda su contraseña, restablecela: pasa a ser su número de DNI y después la puede cambiar desde su panel.
+          Si el socio no recuerda su contraseña, restablecela: se genera una temporal que después cambia desde su panel.
         </p>
-        {perfil.debeCambiarContrasena && <p className="small text-danger">La contraseña está restablecida al DNI y el socio todavía no la cambió.</p>}
+        {perfil.debeCambiarContrasena && <p className="small text-danger">El socio todavía usa la contraseña temporal.</p>}
         <Button variant="outline-secondary" className="rounded-pill px-4" onClick={() => setConfirmar(true)}>
           Restablecer contraseña
         </Button>
@@ -164,8 +164,8 @@ function FichaSocio({ socioId, onVolver, onCambio, puedeDarDeBaja = false }) {
           <Modal.Title className="h5 fw-bold text-secondary">Restablecer contraseña</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          La contraseña de <strong>{perfil.nombreCompleto}</strong> va a pasar a ser su DNI (<span className="font-numeros">{perfil.dni}</span>). La anterior deja de
-          funcionar. ¿Confirmás?
+          Se va a generar una contraseña temporal para <strong>{perfil.nombreCompleto}</strong>. La anterior deja de funcionar y se cierran sus sesiones abiertas.
+          ¿Confirmás?
         </Modal.Body>
         <Modal.Footer>
           <Button variant="outline-secondary" className="rounded-pill px-4" onClick={() => setConfirmar(false)}>

@@ -94,6 +94,22 @@ export class Socio {
   @Column({ default: true })
   activo: boolean;
 
+  // Seguridad de la cuenta (migración 006).
+  @Column({ name: 'intentos_fallidos', default: 0, select: false })
+  intentosFallidos: number;
+
+  @Column({ name: 'bloqueado_hasta', type: 'timestamptz', nullable: true, select: false })
+  bloqueadoHasta: Date | null;
+
+  // Sube al cambiar o restablecer la contraseña: los pases de sesión
+  // emitidos con una versión anterior dejan de valer.
+  @Column({ name: 'version_sesion', default: 0 })
+  versionSesion: number;
+
+  // Cuándo aceptó la política de privacidad (Ley 25.326).
+  @Column({ name: 'privacidad_aceptada', type: 'timestamptz', nullable: true })
+  privacidadAceptada: Date | null;
+
   @CreateDateColumn({ name: 'creado_en' })
   creadoEn: Date;
 

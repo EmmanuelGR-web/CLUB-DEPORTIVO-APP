@@ -18,6 +18,7 @@ import { formatearFechaConAnio } from '../../utilidades/fechas'
 import { registrarSocio } from '../../servicios/cuentaApi'
 import { tarjetaVidrio } from './estilosAuth'
 import { alertaAviso, alertaError, alertaMensaje } from '../../utilidades/alertas'
+import { contrasenaValida, mensajeContrasena } from '../../utilidades/validaciones'
 
 const edadValida = (fecha) => {
   const nacimiento = new Date(`${fecha}T12:00:00`)
@@ -167,7 +168,7 @@ function FormularioRegistro() {
 
   const errores = {
     ...Object.fromEntries([...camposDni, ...camposContacto].map((c) => [c.nombre, !c.valido(datos[c.nombre])])),
-    contrasena: datos.contrasena.length < 6,
+    contrasena: !contrasenaValida(datos.contrasena),
     repetir: datos.repetir !== datos.contrasena || datos.repetir === '',
     frente: !imagenes.frente,
     dorso: !imagenes.dorso,
@@ -207,6 +208,7 @@ function FormularioRegistro() {
         foto: selfie,
         medioPago: armarMedioPago(),
         lecturaIA: lecturaIA ? { ...lecturaIA, corregidos: camposCorregidos(lecturaIA.leidos, datos) } : undefined,
+        aceptaPrivacidad: terminos,
       })
     } catch (problema) {
       if (problema.datos?.duplicado) {
@@ -381,7 +383,7 @@ function FormularioRegistro() {
                       valor={datos.contrasena}
                       onCambiar={(v) => cambiar('contrasena', v)}
                       invalido={marcar('contrasena')}
-                      mensaje="Al menos 6 caracteres."
+                      mensaje={mensajeContrasena}
                     />
                   </Col>
                   <Col md={6}>
@@ -401,7 +403,14 @@ function FormularioRegistro() {
                   className={`mb-4 ${marcar('terminos') ? 'text-warning' : ''}`}
                   checked={terminos}
                   onChange={(e) => setTerminos(e.target.checked)}
-                  label="Acepto los términos y condiciones del club"
+                  label={
+                    <>
+                      Acepto los términos y condiciones del club y la{' '}
+                      <Link href="/privacidad" target="_blank" className="link-light fw-semibold">
+                        política de privacidad
+                      </Link>
+                    </>
+                  }
                 />
 
                 <Button

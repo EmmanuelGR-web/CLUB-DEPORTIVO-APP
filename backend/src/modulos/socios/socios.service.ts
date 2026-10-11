@@ -33,6 +33,7 @@ export interface DatosSocioNuevo {
   rol?: Rol;
   fechaAlta?: string;
   debeCambiarContrasena?: boolean;
+  privacidadAceptada?: Date | null;
 }
 
 @Injectable()
@@ -45,7 +46,7 @@ export class SociosService {
   buscarPorEmailConContrasena(email: string) {
     return this.repositorioSocios
       .createQueryBuilder('socio')
-      .addSelect('socio.contrasenaHash')
+      .addSelect(['socio.contrasenaHash', 'socio.intentosFallidos', 'socio.bloqueadoHasta'])
       .where('socio.email = :email', { email: normalizarEmail(email) })
       .getOne();
   }
@@ -58,6 +59,26 @@ export class SociosService {
       .getOne();
     if (!socio) throw new NotFoundException('No encontramos la cuenta.');
     return socio;
+  }
+
+  // Lo mínimo para validar un pase de sesión en cada pedido.
+  datosDeSesion(id: string) {
+    return this.repositorioSocios.findOne({ where: { id }, select: { id: true, activo: true, versionSesion: true, rol: true, email: true } });
+  }
+
+  // Cuenta un intento fallido y bloquea la cuenta al llegar al máximo.
+  async registrarIntentoFallido(socio: Socio, maximo: number, minutos: number) {
+    const intentos = (socio.intentosFallidos ?? 0) + 1;
+    const bloquear = intentos >= maximo;
+    await this.repositorioSocios.update(socio.id, {
+      intentosFallidos: bloquear ? 0 : intentos,
+      bloqueadoHasta: bloquear ? new Date(Date.now() + minutos * 60_000) : socio.bloqueadoHasta,
+    });
+    return bloquear;
+  }
+
+  limpiarIntentos(id: string) {
+    return this.repositorioSocios.update(id, { intentosFallidos: 0, bloqueadoHasta: null });
   }
 
   listar() {
@@ -106,6 +127,7 @@ export class SociosService {
       rol: datos.rol ?? Rol.SOCIO,
       fechaAlta,
       debeCambiarContrasena: datos.debeCambiarContrasena ?? false,
+      privacidadAceptada: datos.privacidadAceptada ?? null,
       categoria: await this.categoriaPara(new Date(`${fechaAlta}T12:00:00`)),
     });
     const guardado = await repositorio.save(socio);

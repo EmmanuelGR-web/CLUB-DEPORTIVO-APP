@@ -30,8 +30,6 @@ services:
         sync: false
       - key: JWT_SECRETO
         generateValue: true
-      - key: JWT_EXPIRACION
-        value: 1d
       - key: GEMINI_API_KEY
         sync: false
       - key: CORS_ORIGENES

@@ -19,3 +19,13 @@ import { AuthGuard } from '@nestjs/passport';
 
 @Injectable()
 export class JwtAuthGuard extends AuthGuard('jwt') {}
+
+// Igual que JwtAuthGuard, pero si no hay sesión deja pasar el pedido con
+// usuario vacío en lugar de responder 401. Lo usa la consulta de la
+// sesión al abrir el sitio, que sin cuenta iniciada no es un error.
+@Injectable()
+export class JwtOpcionalGuard extends AuthGuard('jwt') {
+  handleRequest<T>(_error: unknown, usuario: T): T | null {
+    return usuario || null;
+  }
+}
