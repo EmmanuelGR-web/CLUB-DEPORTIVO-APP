@@ -224,5 +224,3 @@ npm run lint
 - `README.md`: resumen general del repositorio.
 - `backend/README.md`: detalles de la API.
 - `frontend/README.md`: detalles del portal web.
-- `docs/manual-usuario-es.md`: manual de usuario en espanol.
-- `docs/manual-usuario-en.md`: manual de usuario en ingles.

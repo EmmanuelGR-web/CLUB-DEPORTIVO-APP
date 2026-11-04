@@ -287,8 +287,6 @@ club-deportivo/
 ## Documentación
 
 - [Guía completa del proyecto y puesta en marcha](docs/README-club-deportivo.md)
-- [Manual de usuario (Español)](docs/manual-usuario-es.md)
-- [Manual de usuario (English)](docs/manual-usuario-en.md)
 - [README del backend](backend/README.md)
 
 ## Principios de diseño aplicados
