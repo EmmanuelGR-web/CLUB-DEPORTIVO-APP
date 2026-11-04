@@ -5,5 +5,3 @@ export const categorias = {
 }
 
 export const categoriaPorAntiguedad = (anios) => (anios <= 2 ? 'Bronce' : anios <= 10 ? 'Plata' : 'Oro')
-
-export const cuotaPorCategoria = { Bronce: 15000, Plata: 18000, Oro: 21000 }
