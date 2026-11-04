@@ -14,7 +14,8 @@
     "migration:generate": "typeorm-ts-node-commonjs migration:generate -d src/config/database.config.ts",
     "lint": "eslint \"src/**/*.ts\" --fix",
     "test": "jest",
-    "migrar": "node --env-file=.env scripts/migrar.js"
+    "migrar": "node --env-file=.env scripts/migrar.js",
+    "test:cov": "jest --coverage"
   },
   "dependencies": {
     "@nestjs/common": "^10.4.0",
@@ -50,7 +51,26 @@
     "@types/passport-jwt": "^4.0.1",
     "eslint": "^8.57.0",
     "jest": "^29.7.0",
+    "ts-jest": "^29.4.15",
     "ts-node": "^10.9.2",
     "typescript": "^5.5.0"
+  },
+  "jest": {
+    "moduleFileExtensions": [
+      "js",
+      "json",
+      "ts"
+    ],
+    "rootDir": "src",
+    "testRegex": ".*.spec.ts$",
+    "transform": {
+      "^.+.ts$": "ts-jest"
+    },
+    "testEnvironment": "node",
+    "collectCoverageFrom": [
+      "comun/utilidades/**/*.ts"
+    ],
+    "coverageDirectory": "../coverage",
+    "globalSetup": "<rootDir>/../test/zona-horaria.js"
   }
 }

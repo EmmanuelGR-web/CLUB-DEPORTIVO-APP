@@ -145,6 +145,7 @@ Pedro Díaz (A01) es el personal administrativo con usuario; la nómina trae a o
 | Seguridad | **helmet**, **@nestjs/throttler**, Row Level Security de Supabase y CSP en Next |
 | Hosting backend | **Render** |
 | Hosting frontend | **Vercel** |
+| Pruebas | **Jest** (ts-jest en el backend, `next/jest` en el frontend) |
 
 ## Instalación y ejecución
 
@@ -188,17 +189,23 @@ npm run dev
 | `NEXT_PUBLIC_API_URL` | frontend | URL del backend (local: `http://localhost:3000`). El navegador no la usa directo: Next reenvía `/api/*` a esa dirección |
 | `NEXT_PUBLIC_DEPORTES_EQUIPO`, `NEXT_PUBLIC_DEPORTES_LIGA`, `NEXT_PUBLIC_DEPORTES_NOMBRE_LIGA` | frontend | Opcionales. Equipo y liga de ESPN para el calendario (por defecto `17814` = San Martín de Tucumán, `arg.2` = Primera Nacional) |
 
-## Flujo de trabajo con Git
+## Pruebas
 
+Las reglas de negocio tienen pruebas unitarias con **Jest**. No necesitan base de datos ni conexión a internet.
+
+```bash
+cd backend && npm test        # cuotas, contraseñas y correos (npm run test:cov para ver la cobertura)
+cd frontend && npm test       # validación de tarjetas
 ```
-feat/… o fix/…  ──►  dev  ──►  main  ──►  deploy (Vercel + Render)
-```
 
-1. Cada funcionalidad se hace en su propia rama creada desde `dev` (`feat/panel-socio-bootstrap`, `fix/…`).
-2. Cuando está lista se mergea a `dev`, que es la rama de integración donde se prueba todo junto.
-3. Cuando `dev` está estable se mergea a `main`, que es la que se publica.
+| Archivo | Qué prueba |
+|---|---|
+| `backend/src/comun/utilidades/cuotas.util.spec.ts` | Categoría por antigüedad (Bronce, Plata, Oro), vencimiento del día 15 y primer vencimiento a 10 días del alta, días de demora, recargo del 0,1 % diario, primer mes doble y cuotas mes a mes con la categoría de cada mes |
+| `backend/src/comun/utilidades/contrasenas.util.spec.ts` | Regla de 8 a 72 caracteres con letras y números, contraseñas temporales sin caracteres confusos y cifrado con bcrypt (costo 12) |
+| `backend/src/comun/utilidades/correos.util.spec.ts` | Armado del correo institucional del socio y del personal (sin acentos ni símbolos) |
+| `frontend/src/utilidades/tarjetas.test.js` | Red de la tarjeta, algoritmo de Luhn, formato del número y del vencimiento, emisores que aceptan cada red, código de seguridad y que de la tarjeta solo se guarden la marca y los últimos 4 números |
 
-Los mensajes de commit siguen la [guía de commits](docs/guia-commits.md).
+Los tests del backend corren con la zona horaria de Argentina, igual que el servidor, para que los vencimientos den lo mismo en cualquier computadora.
 
 ## Despliegue
 
@@ -280,8 +287,6 @@ club-deportivo/
 ## Documentación
 
 - [Guía completa del proyecto y puesta en marcha](docs/README-club-deportivo.md)
-- [Manual de usuario (Español)](docs/manual-usuario-es.md)
-- [Manual de usuario (English)](docs/manual-usuario-en.md)
 - [README del backend](backend/README.md)
 
 ## Principios de diseño aplicados
