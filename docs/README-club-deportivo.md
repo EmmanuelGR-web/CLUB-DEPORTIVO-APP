@@ -226,4 +226,3 @@ npm run lint
 - `frontend/README.md`: detalles del portal web.
 - `docs/manual-usuario-es.md`: manual de usuario en espanol.
 - `docs/manual-usuario-en.md`: manual de usuario en ingles.
-- `docs/guia-commits.md`: convenciones de commits.
