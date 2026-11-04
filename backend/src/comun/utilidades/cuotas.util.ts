@@ -5,7 +5,9 @@
 // personal y los reportes calculen siempre lo mismo:
 //
 //   - La cuota se genera sola cada mes desde el mes de alta.
-//   - El monto depende de la categoría que tenía el socio ese mes.
+//   - El monto es el mismo para todos los socios. La categoría
+//     (Bronce, Plata u Oro) sube con la antigüedad y no cambia el
+//     precio de la cuota.
 //   - El primer mes se cobra doble (inscripción + cuota).
 //   - Vence el día 15. El primer vencimiento es el 15 de ese mes o
 //     10 días después del alta, lo que llegue más tarde.
@@ -14,7 +16,7 @@
 
 export const DIA_VENCIMIENTO = 15;
 export const INTERES_DIARIO = 0.001;
-export const CUOTA_POR_CATEGORIA: Record<string, number> = { Bronce: 15000, Plata: 18000, Oro: 21000 };
+export const CUOTA_MENSUAL = 15000;
 
 const UN_DIA = 24 * 3600 * 1000;
 
@@ -61,14 +63,13 @@ export function periodosDesdeAlta(fechaAlta: Date, hoy = new Date()): PeriodoCuo
   while (mes <= hoy) {
     const anio = mes.getFullYear();
     const numeroMes = mes.getMonth();
-    const categoria = categoriaPorAntiguedad(aniosEntre(fechaAlta, mes));
     periodos.push({
       periodo: textoPeriodo(anio, numeroMes),
       anio,
       mes: numeroMes,
       indice,
       concepto: indice === 0 ? 'Inscripción y cuota' : 'Cuota mensual',
-      base: CUOTA_POR_CATEGORIA[categoria] * (indice === 0 ? 2 : 1),
+      base: CUOTA_MENSUAL * (indice === 0 ? 2 : 1),
       vence: indice === 0 ? vencimientoInicial(fechaAlta) : vencimientoDe(anio, numeroMes),
     });
     mes.setMonth(mes.getMonth() + 1);

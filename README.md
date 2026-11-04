@@ -47,12 +47,12 @@ Es la portada pública (`/`), la misma del proyecto C-DEPORTIVO, y desde ahí se
 
 ### Panel del socio
 
-- **Resumen:** estado de la membresía y categoría automática según la antigüedad (Bronce hasta 2 años, Plata hasta 10, Oro más de 10); **carnet digital** con foto en forma de escudo, QR y código de barras, que se inclina en 3D con el mouse y se descarga en **PDF** para imprimir; y los últimos movimientos.
+- **Resumen:** estado de la membresía y categoría automática según la antigüedad (Bronce hasta 2 años, Plata hasta 10, Oro más de 10), que no cambia el precio de la cuota; **carnet digital** con foto en forma de escudo, QR y código de barras, que se inclina en 3D con el mouse y se descarga en **PDF** para imprimir; y los últimos movimientos.
 - **Noticias:** las que publica el club, con la más nueva destacada, filtro por categoría y el texto completo al tocarla.
 - **Beneficios:** todos los beneficios vigentes en tarjetas; al tocar uno se abren sus condiciones.
 - **Barra inferior fija** en el celular y la tablet, como en las apps: Noticias, **Resumen** (en el medio, destacado) y Beneficios. Los paneles del personal y de la administración principal tienen la misma barra; en el celular esas tres secciones salen del menú desplegable.
 - **Datos personales:** foto de perfil desde la cámara o un archivo (se puede cambiar una vez cada 6 meses); los datos de contacto se actualizan al instante y los de documento (nombre, apellido, DNI, nacimiento) quedan **pendientes hasta que el personal los aprueba**. Cada cambio queda en el historial de la cuenta. Cambio de contraseña verificando la actual.
-- **Facturas y pagos:** la cuota se genera sola cada mes desde el alta, vence el **día 15** y después suma un **recargo del 0,1 % por día**. El socio **informa el pago** con el comprobante (imagen o PDF): la **IA lee el monto, la fecha, el medio y el número de operación** y avisa si el monto coincide con la cuota. Historial con filtros por año, estado, medio y concepto, orden por columna, paginación y descarga del **estado de cuenta en PDF**. Cambio de medio de pago, con o sin **débito automático** (las cuotas se cobran solas).
+- **Facturas y pagos:** la cuota es de **$15.000 para todos los socios**, sin importar la categoría (el primer mes es doble: inscripción y cuota). Se genera sola cada mes desde el alta, vence el **día 15** y después suma un **recargo del 0,1 % por día**. El socio **informa el pago** con el comprobante (imagen o PDF): la **IA lee el monto, la fecha, el medio y el número de operación** y avisa si el monto coincide con la cuota. Historial con filtros por año, estado, medio y concepto, orden por columna, paginación y descarga del **estado de cuenta en PDF**. Cambio de medio de pago, con o sin **débito automático** (las cuotas se cobran solas).
 - **Bandeja de entrada:** correo institucional del socio, conversaciones con administración, respuestas y **archivos adjuntos** (imágenes que se optimizan solas o PDF).
 - **Panel en vivo:** se actualiza cada 10 segundos y al volver a la pestaña, y tiene un botón para actualizar a mano.
 
@@ -166,6 +166,7 @@ npm run migrar -- migraciones/003_portal_del_socio.sql   # solo si la base viene
 npm run migrar -- migraciones/004_personal_jornadas_noticias.sql   # personal, jornadas y noticias
 npm run migrar -- migraciones/005_beneficios.sql
 npm run migrar -- migraciones/006_seguridad.sql   # bloqueo por intentos, versión de sesión y RLS
+npm run migrar -- migraciones/007_cuota_unica.sql   # misma cuota para todas las categorías
 npm run sembrar        # opcional: carga los usuarios y socios de prueba
 npm run start:dev
 ```
@@ -200,7 +201,7 @@ cd frontend && npm test       # validación de tarjetas
 
 | Archivo | Qué prueba |
 |---|---|
-| `backend/src/comun/utilidades/cuotas.util.spec.ts` | Categoría por antigüedad (Bronce, Plata, Oro), vencimiento del día 15 y primer vencimiento a 10 días del alta, días de demora, recargo del 0,1 % diario, primer mes doble y cuotas mes a mes con la categoría de cada mes |
+| `backend/src/comun/utilidades/cuotas.util.spec.ts` | Categoría por antigüedad (Bronce, Plata, Oro), vencimiento del día 15 y primer vencimiento a 10 días del alta, días de demora, recargo del 0,1 % diario, cuota de $15.000 para todas las categorías, primer mes doble y una cuota por mes desde el alta |
 | `backend/src/comun/utilidades/contrasenas.util.spec.ts` | Regla de 8 a 72 caracteres con letras y números, contraseñas temporales sin caracteres confusos y cifrado con bcrypt (costo 12) |
 | `backend/src/comun/utilidades/correos.util.spec.ts` | Armado del correo institucional del socio y del personal (sin acentos ni símbolos) |
 | `frontend/src/utilidades/tarjetas.test.js` | Red de la tarjeta, algoritmo de Luhn, formato del número y del vencimiento, emisores que aceptan cada red, código de seguridad y que de la tarjeta solo se guarden la marca y los últimos 4 números |

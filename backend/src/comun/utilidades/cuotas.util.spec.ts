@@ -1,5 +1,5 @@
 import {
-  CUOTA_POR_CATEGORIA,
+  CUOTA_MENSUAL,
   aniosEntre,
   calcularCuota,
   categoriaPorAntiguedad,
@@ -94,20 +94,25 @@ describe('cuotas.util', () => {
     it('el primer mes es inscripción + cuota y se cobra doble', () => {
       const [primero, segundo] = periodosDesdeAlta(new Date(2026, 7, 10, 9), new Date(2026, 9, 1));
       expect(primero.concepto).toBe('Inscripción y cuota');
-      expect(primero.base).toBe(CUOTA_POR_CATEGORIA.Bronce * 2);
+      expect(primero.base).toBe(30000);
       expect(primero.vence).toEqual(new Date(2026, 7, 20, 9));
       expect(segundo.concepto).toBe('Cuota mensual');
-      expect(segundo.base).toBe(CUOTA_POR_CATEGORIA.Bronce);
+      expect(segundo.base).toBe(15000);
       expect(segundo.vence).toEqual(new Date(2026, 8, 15, 23, 59, 59));
     });
 
-    it('cada mes se cobra con la categoría que tenía el socio ese mes', () => {
+    it('la cuota es de $15.000 para todas las categorías', () => {
+      expect(CUOTA_MENSUAL).toBe(15000);
+      // Socio desde 2016: pasa por Bronce, Plata y Oro y siempre paga lo mismo.
       const periodos = periodosDesdeAlta(new Date(2016, 2, 1), new Date(2026, 4, 1));
       const base = (periodo: string) => periodos.find((p) => p.periodo === periodo).base;
-      expect(base('2018-02')).toBe(CUOTA_POR_CATEGORIA.Bronce);
-      expect(base('2018-04')).toBe(CUOTA_POR_CATEGORIA.Plata);
-      expect(base('2026-03')).toBe(CUOTA_POR_CATEGORIA.Plata);
-      expect(base('2026-04')).toBe(CUOTA_POR_CATEGORIA.Oro);
+      expect(categoriaPorAntiguedad(aniosEntre(new Date(2016, 2, 1), new Date(2018, 1, 1)))).toBe('Bronce');
+      expect(base('2018-02')).toBe(15000);
+      expect(categoriaPorAntiguedad(aniosEntre(new Date(2016, 2, 1), new Date(2018, 3, 1)))).toBe('Plata');
+      expect(base('2018-04')).toBe(15000);
+      expect(categoriaPorAntiguedad(aniosEntre(new Date(2016, 2, 1), new Date(2026, 3, 1)))).toBe('Oro');
+      expect(base('2026-04')).toBe(15000);
+      expect(periodos.slice(1).every((p) => p.base === 15000)).toBe(true);
     });
 
     it('un alta de hoy tiene solo la cuota de este mes', () => {
