@@ -1,12 +1,3 @@
-// =====================================================================
-// jornadas.service.ts
-// -----------------------------------------------------------------------
-// Jornada del personal que usa el portal. El panel avisa que la persona
-// sigue conectada cada 20 segundos; si pasan más de 90 sin aviso, ese
-// rato cuenta como "sin conexión" y no suma horas trabajadas. El
-// descanso permitido es de 30 minutos por jornada.
-// =====================================================================
-
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -18,7 +9,6 @@ export const fechaLocal = (fecha = new Date()) => fecha.toLocaleDateString('en-C
 
 const cerrarAbiertos = (lista: Tramo[], ahora: number) => lista.map((t) => (t.fin ? t : { ...t, fin: ahora }));
 
-// Formato que usa el panel: tiempos en milisegundos.
 export const jornadaParaPanel = (j: Jornada | null) =>
   j && {
     inicio: j.inicio.getTime(),
@@ -84,8 +74,6 @@ export class JornadasService {
     return this.repositorio.save(j);
   }
 
-  // terminada = true cuando marca el fin de la jornada; false cuando
-  // solo cierra sesión (puede volver a entrar ese mismo día).
   async registrarSalida(personalId: string, terminada: boolean) {
     const ahora = Date.now();
     const j = await this.deHoy(personalId);

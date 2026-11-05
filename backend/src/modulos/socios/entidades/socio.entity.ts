@@ -1,11 +1,3 @@
-// =====================================================================
-// socio.entity.ts
-// -----------------------------------------------------------------------
-// Tabla "socios". Guarda tanto a los socios como al personal del club:
-// lo que cambia es el rol. La categoría y la cuota no se guardan acá,
-// se calculan según la antigüedad (ver cuotas.util.ts).
-// =====================================================================
-
 import { Column, CreateDateColumn, Entity, Index, JoinColumn, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
 import { Rol } from '../../../comun/enums/rol.enum';
 import { CategoriaSocio } from './categoria-socio.entity';
@@ -25,7 +17,6 @@ export class Socio {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  // Número de socio visible e inmutable (lo genera una secuencia).
   @Index({ unique: true })
   @Column({ name: 'id_socio', type: 'bigint', unique: true, insert: false, update: false })
   idSocio: string;
@@ -40,7 +31,6 @@ export class Socio {
   @Column({ length: 150, unique: true })
   email: string;
 
-  // select: false para que el hash nunca viaje por accidente en una respuesta.
   @Column({ name: 'contrasena_hash', select: false })
   contrasenaHash: string;
 
@@ -62,7 +52,6 @@ export class Socio {
   @Column({ type: 'varchar', length: 200, nullable: true })
   direccion: string | null;
 
-  // Foto del carnet como data URL (320 × 320 px, JPEG).
   @Column({ name: 'foto_carnet_url', type: 'text', nullable: true })
   foto: string | null;
 
@@ -94,19 +83,15 @@ export class Socio {
   @Column({ default: true })
   activo: boolean;
 
-  // Seguridad de la cuenta (migración 006).
   @Column({ name: 'intentos_fallidos', default: 0, select: false })
   intentosFallidos: number;
 
   @Column({ name: 'bloqueado_hasta', type: 'timestamptz', nullable: true, select: false })
   bloqueadoHasta: Date | null;
 
-  // Sube al cambiar o restablecer la contraseña: los pases de sesión
-  // emitidos con una versión anterior dejan de valer.
   @Column({ name: 'version_sesion', default: 0 })
   versionSesion: number;
 
-  // Cuándo aceptó la política de privacidad (Ley 25.326).
   @Column({ name: 'privacidad_aceptada', type: 'timestamptz', nullable: true })
   privacidadAceptada: Date | null;
 
@@ -120,8 +105,6 @@ export class Socio {
     return `${this.nombre} ${this.apellido}`.trim();
   }
 
-  // La fecha de alta es un DATE: se arma al mediodía local para que no
-  // se corra un día por la zona horaria.
   get fechaAltaComoFecha() {
     return new Date(`${String(this.fechaAlta).slice(0, 10)}T12:00:00`);
   }

@@ -1,5 +1,3 @@
-// Pedidos de la administración: /admin (solo la dirección), /noticias y
-// /beneficios (también los gestiona el personal administrativo).
 import { pedir } from './api'
 
 export const obtenerPanelAdmin = () => pedir('/admin/panel')

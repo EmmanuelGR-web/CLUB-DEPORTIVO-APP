@@ -1,12 +1,3 @@
-// =====================================================================
-// admin.module.ts
-// -----------------------------------------------------------------------
-// Rutas exclusivas de la administración principal: el panel con la
-// información económica (padrón completo con sus cuotas) y la gestión
-// del personal del club. El resto de lo que usa este panel (fichas,
-// baja de socios, canal interno) vive en /gestion.
-// =====================================================================
-
 import { BadRequestException, Body, Controller, Delete, Get, Injectable, Module, Patch, Post, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
@@ -75,8 +66,6 @@ export class AdminService {
 
   async panel(usuario: UsuarioAutenticado) {
     const socios = (await this.socios.listar()).filter((s) => s.rol === Rol.SOCIO && s.activo);
-    // Perfil completo de cada socio, con su estado de cuenta, para la
-    // facturación y el resumen económico.
     const perfiles = await this.perfiles.armarVarios(socios);
     perfiles.sort((a, b) => a.nombreCompleto.localeCompare(b.nombreCompleto));
 
@@ -108,8 +97,6 @@ export class AdminService {
   }
 
   async actualizar(ids: string[], pedidos: Partial<PersonalDto>) {
-    // Solo se pueden tocar los datos del legajo: nunca el código ni el
-    // usuario del portal vinculado.
     const campos = ['nombre', 'dni', 'rol', 'correo', 'telefono', 'dias', 'entrada', 'salida', 'ingreso', 'ausencia'] as const;
     const cambios = Object.fromEntries(Object.entries(pedidos).filter(([campo]) => (campos as readonly string[]).includes(campo))) as Partial<PersonalDto>;
     if (cambios.rol && !ROLES_PERSONAL.includes(cambios.rol)) throw new BadRequestException('Rol desconocido.');

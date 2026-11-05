@@ -69,8 +69,6 @@ export const estadoJornada = (jornada, ahora) => {
   }
 }
 
-// Quien usa el portal tiene su jornada real; para el resto se arma una
-// según su horario, así el control del personal se puede mostrar completo.
 export const presenciaDe = (empleado, jornadas, ahora) =>
   estadoJornada(empleado.conPortal ? jornadas[empleado.id] : jornadaSimulada(empleado, ahora), ahora)
 

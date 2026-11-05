@@ -1,13 +1,3 @@
-// =====================================================================
-// pago.entity.ts
-// -----------------------------------------------------------------------
-// Tabla "pagos". Cada fila es un pago informado por el socio (o
-// debitado de su tarjeta) para un período "AAAA-MM". Mientras el
-// personal no lo revisa queda 'pendiente' ("En revisión" en pantalla).
-// Un socio puede tener un solo pago vivo por período; si se lo
-// rechazan, puede informarlo de nuevo.
-// =====================================================================
-
 import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
 import { Socio } from '../../socios/entidades/socio.entity';
 import { EstadoPago } from './estado-pago.enum';
@@ -63,7 +53,6 @@ export class Pago {
   @Column({ type: 'enum', enum: EstadoPago, default: EstadoPago.PENDIENTE })
   estado: EstadoPago;
 
-  // Fecha en la que el socio dice que pagó.
   @Column({ name: 'fecha_pago', type: 'timestamptz' })
   fechaPago: Date;
 
@@ -79,7 +68,6 @@ export class Pago {
   @Column({ name: 'numero_comprobante', type: 'varchar', length: 30, unique: true, nullable: true })
   numeroComprobante: string | null;
 
-  // Motivo del rechazo o comentario del personal.
   @Column({ type: 'text', nullable: true })
   observacion: string | null;
 

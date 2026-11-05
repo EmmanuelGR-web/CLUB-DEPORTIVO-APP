@@ -1,12 +1,3 @@
-// =====================================================================
-// ia.service.ts
-// -----------------------------------------------------------------------
-// Lee fotos del DNI y comprobantes de pago con Gemini (plan gratuito de
-// Google AI Studio). La clave GEMINI_API_KEY vive solo en el servidor.
-// Si no está configurada, el portal sigue funcionando y los datos se
-// completan a mano.
-// =====================================================================
-
 import { BadRequestException, HttpException, HttpStatus, Injectable, PayloadTooLargeException, ServiceUnavailableException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 

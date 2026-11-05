@@ -2,8 +2,6 @@
 
 import { useState } from 'react'
 
-// El bordó del ícono va fijo: en el modo oscuro .text-secondary se aclara
-// y se perdería sobre el círculo blanco.
 function BotonRed({ nombre, url, icono: Icono }) {
   const [encima, setEncima] = useState(false)
 

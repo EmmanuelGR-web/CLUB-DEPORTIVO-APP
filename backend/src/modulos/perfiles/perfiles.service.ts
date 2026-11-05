@@ -1,18 +1,3 @@
-// =====================================================================
-// perfiles.service.ts
-// -----------------------------------------------------------------------
-// Arma el "perfil" completo de un socio tal como lo usan los paneles
-// (datos, categoría, antigüedad, correo institucional y estado de
-// cuenta) y aplica los cambios en su cuenta dejando constancia.
-//
-// Reglas de los cambios:
-//   - Contacto, domicilio, medio de pago y foto se aplican al instante.
-//   - Si el socio cambia su nombre, DNI o fecha de nacimiento, el
-//     cambio queda pendiente hasta que el personal lo apruebe.
-//   - Si los cambia el personal, se aplican al instante.
-//   - La foto del carnet se puede cambiar una vez cada 6 meses.
-// =====================================================================
-
 import { BadRequestException, ConflictException, Injectable } from '@nestjs/common';
 import { Socio, MedioPagoSocio } from '../socios/entidades/socio.entity';
 import { normalizarDni, normalizarEmail, SociosService } from '../socios/socios.service';
@@ -49,7 +34,6 @@ const edadValida = (fecha: string) => {
   return anios >= 0 && anios < 110;
 };
 
-// Mismas validaciones que los formularios del portal.
 const VALIDACIONES: Record<Exclude<CampoEditable, 'medioPago' | 'foto'>, [(v: string) => boolean, string]> = {
   nombre: [(v) => v.trim().length >= 2, 'Ingresá tu nombre.'],
   apellido: [(v) => v.trim().length >= 2, 'Ingresá tu apellido.'],
@@ -73,7 +57,7 @@ function describir(campo: CampoEditable, valor: unknown): string {
 }
 
 export interface Autor {
-  nombre: string; // 'Socio' cuando el cambio lo hace el propio socio
+  nombre: string;
   esSocio: boolean;
 }
 
@@ -135,14 +119,11 @@ export class PerfilesService {
     };
   }
 
-  // Perfiles completos de varios socios de una vez, sin el detalle de
-  // pedidos pendientes (lo usa la administración para la facturación).
   async armarVarios(socios: Socio[], hoy = new Date()) {
     const estados = await this.pagos.estadosDeCuenta(socios, hoy);
     return socios.map((s) => ({ ...this.datosBasicos(s, hoy), pagos: estados.get(s.id) ?? [] }));
   }
 
-  // Valor actual de un campo, en el mismo formato que llega del formulario.
   private valorActual(socio: Socio, campo: CampoEditable): unknown {
     if (campo === 'fechaNacimiento') return socio.fechaNacimiento ? String(socio.fechaNacimiento).slice(0, 10) : '';
     if (campo === 'medioPago') return socio.medioPago;
@@ -190,16 +171,12 @@ export class PerfilesService {
     }
   }
 
-  // Aplica un cambio de documento que el personal autorizó.
   async aplicarAprobados(socioId: string, valores: ValoresCambio) {
     const socio = await this.socios.buscarPorId(socioId);
     Object.entries(valores).forEach(([campo, v]) => this.aplicar(socio, campo as CampoEditable, v.nuevo));
     return this.socios.guardar(socio);
   }
 
-  // Vuelve a los datos anteriores cuando el personal rechaza un cambio
-  // que el socio ya había aplicado. Solo toca los campos que siguen
-  // con el valor pedido (si después se volvieron a cambiar, se dejan).
   async revertir(socioId: string, valores: ValoresCambio, autor: string) {
     const socio = await this.socios.buscarPorId(socioId);
     const aRevertir = Object.entries(valores)
@@ -220,8 +197,6 @@ export class PerfilesService {
     return cambios.map((c) => c.campo);
   }
 
-  // Devuelve 'pendiente' si quedó algo esperando aprobación, true si se
-  // aplicó algún cambio o false si no había nada distinto.
   async guardarCambios(socioId: string, pedidos: CambiosSocio, seccion: string, autor: Autor): Promise<'pendiente' | boolean> {
     const socio = await this.socios.buscarPorId(socioId);
     const distintos = Object.entries(pedidos)
@@ -253,8 +228,6 @@ export class PerfilesService {
       Object.fromEntries(lista.map(([campo, nuevo]) => [campo, { anterior: this.valorActual(socio, campo) ?? null, nuevo }]));
     const nombreAntes = socio.nombreCompleto;
 
-    // Primero se arma la constancia con los valores anteriores; recién
-    // después se modifican los datos.
     const registros = [];
     if (inmediatos.length > 0) {
       const documento = inmediatos.filter(([campo]) => (CAMPOS_IDENTIDAD as readonly string[]).includes(campo));

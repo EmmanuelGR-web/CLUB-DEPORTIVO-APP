@@ -10,8 +10,6 @@ class LecturaDto {
   @IsOptional() @IsObject() contexto?: { hoy?: string };
 }
 
-// Público porque el registro de socios todavía no tiene sesión. El
-// tamaño de los archivos está limitado y la clave queda en el servidor.
 @ApiTags('Lectura con IA')
 @Controller('ia')
 export class IaController {
@@ -19,7 +17,6 @@ export class IaController {
 
   @Post('leer-documento')
   @HttpCode(200)
-  // Cada lectura consume la cuota gratuita de Gemini.
   @Throttle({ general: { limit: 15, ttl: 60_000 } })
   @ApiOperation({ summary: 'Lee un DNI (frente y dorso) o un comprobante de pago con Gemini' })
   leer(@Body() datos: LecturaDto) {

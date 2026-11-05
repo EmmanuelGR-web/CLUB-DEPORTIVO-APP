@@ -6,7 +6,6 @@ import { fechaLocal } from './jornadas.service';
 import { Rol } from '../../comun/enums/rol.enum';
 import { UsuarioAutenticado } from '../../comun/decoradores/usuario-actual.decorator';
 
-// La administración principal no figura en la nómina: firma con D01.
 export const DIRECCION = { nombre: 'Laura Gómez', codigo: 'D01', puesto: 'Administradora principal', correo: 'direccion@clubdeportivo.com.ar' };
 
 const PUESTO_POR_ROL: Record<string, string> = {
@@ -37,7 +36,6 @@ export class PersonalService {
     return this.repositorio.find({ order: { codigo: 'ASC' } });
   }
 
-  // Legajo nuevo: el que sigue al más alto (A06 después de A05).
   private async siguienteCodigo() {
     const codigos = (await this.repositorio.find({ select: { codigo: true } })).map((p) => Number(p.codigo.slice(1)) || 0);
     return `A${String(Math.max(0, ...codigos) + 1).padStart(2, '0')}`;
@@ -53,7 +51,6 @@ export class PersonalService {
     return this.repositorio.save(this.repositorio.create({ ...datos, correo: datos.correo!.trim().toLowerCase(), codigo: await this.siguienteCodigo() }));
   }
 
-  // Sirve para editar un legajo o para cambiar varios a la vez (rol o ausencia).
   async actualizar(ids: string[], cambios: Partial<Personal>) {
     if (cambios.correo) {
       if (ids.length > 1) throw new BadRequestException('El correo se cambia de a una persona.');
@@ -78,7 +75,6 @@ export class PersonalService {
     return this.repositorio.findOne({ where: { usuarioId } });
   }
 
-  // Quién firma un cambio hecho desde el panel: "Pedro Díaz (A01)".
   async firma(usuario: UsuarioAutenticado) {
     if (usuario.rol === Rol.ADMIN_PRINCIPAL) return `${DIRECCION.nombre} (${DIRECCION.codigo})`;
     const persona = await this.deUsuario(usuario.id);

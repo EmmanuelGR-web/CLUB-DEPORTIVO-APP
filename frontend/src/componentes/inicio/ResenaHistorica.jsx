@@ -6,8 +6,6 @@ import { FaBookOpen } from 'react-icons/fa'
 import dynamic from 'next/dynamic'
 import PaginaRevista from './PaginaRevista'
 
-// El libro animado usa el navegador para medir las hojas: se carga recién
-// en el cliente.
 const RevistaDigital = dynamic(() => import('./RevistaDigital'), { ssr: false })
 
 function ResenaHistorica({ resumen, paginas }) {

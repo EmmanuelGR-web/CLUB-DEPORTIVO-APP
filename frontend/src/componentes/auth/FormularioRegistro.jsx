@@ -398,7 +398,6 @@ function FormularioRegistro() {
                         type="button"
                         className="btn btn-link link-light fw-semibold p-0 align-baseline"
                         onClick={(e) => {
-                          // Está dentro de la etiqueta del checkbox: sin esto lo marcaría.
                           e.preventDefault()
                           setVerPrivacidad(true)
                         }}

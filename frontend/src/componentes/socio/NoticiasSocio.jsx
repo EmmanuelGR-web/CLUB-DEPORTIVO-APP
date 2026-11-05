@@ -29,7 +29,6 @@ function Portada({ noticia }) {
   )
 }
 
-// Noticias que publica el club, de la más nueva a la más vieja.
 function NoticiasSocio({ noticias }) {
   const [abierta, setAbierta] = useState(null)
   const [categoria, setCategoria] = useState('')

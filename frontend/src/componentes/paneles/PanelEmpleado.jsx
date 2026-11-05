@@ -56,8 +56,6 @@ function ContenidoEmpleado({ datos, recargar, actualizado, cambiarDatos }) {
   const router = useRouter()
   const { empleado } = datos
 
-  // Si la dirección le carga una licencia o vacaciones que empiezan hoy,
-  // la sesión se cierra en el próximo refresco.
   useEffect(() => {
     if (!datos.ausencia) return
     jornadaApi('salida').catch(() => {})

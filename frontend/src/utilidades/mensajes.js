@@ -1,5 +1,3 @@
-// Adjuntos de mensajes y comprobantes: las imágenes se achican en el
-// navegador antes de subirlas y los PDF tienen un tope de tamaño.
 import { abrirArchivo } from '../servicios/cuentaApi'
 
 export const maximoOriginal = 10 * 1024 * 1024
@@ -52,7 +50,6 @@ export const leerAdjunto = async (archivo) => {
 
 export const tamanioLegible = (bytes) => (bytes < 1024 * 1024 ? `${Math.max(1, Math.round(bytes / 1024))} KB` : `${(bytes / 1024 / 1024).toFixed(1)} MB`)
 
-// Trae el archivo del servidor y lo descarga con su nombre.
 export const descargarArchivo = async (archivo) => {
   const { dataUrl, nombre } = await abrirArchivo(archivo.id)
   const enlace = document.createElement('a')

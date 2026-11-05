@@ -5,8 +5,6 @@ import { Archivo, ArchivoAdjunto } from './archivo.entity';
 import { Rol } from '../../comun/enums/rol.enum';
 import { UsuarioAutenticado } from '../../comun/decoradores/usuario-actual.decorator';
 
-// Imágenes ya optimizadas en el navegador (lado máximo 1600 px) y PDF
-// de hasta 1,5 MB, igual que lo que acepta el formulario.
 const TIPOS_PERMITIDOS = /^data:(image\/(jpeg|png|webp|gif)|application\/pdf);base64,/;
 const MAXIMO_CARACTERES = 2.2 * 1024 * 1024;
 
@@ -45,8 +43,6 @@ export class ArchivosService {
     return { id: guardado.id, nombre: guardado.nombre, tipo: guardado.tipo, tamanio: guardado.tamanio };
   }
 
-  // El socio solo puede abrir lo que subió él o lo que le mandó el
-  // club en sus mensajes; el personal puede abrir cualquier archivo.
   async abrir(id: string, usuario: UsuarioAutenticado) {
     const archivo = await this.repositorio.createQueryBuilder('a').addSelect('a.datos').where('a.id = :id', { id }).getOne();
     if (!archivo) throw new NotFoundException('El archivo no existe.');

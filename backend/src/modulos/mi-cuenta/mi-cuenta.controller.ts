@@ -1,11 +1,3 @@
-// =====================================================================
-// mi-cuenta.controller.ts
-// -----------------------------------------------------------------------
-// Todo lo que el socio hace desde su panel. El perfil se devuelve
-// completo (datos, carnet y estado de cuenta) para que el panel se
-// actualice con un solo pedido cada pocos segundos.
-// =====================================================================
-
 import { Body, Controller, Get, HttpCode, Param, ParseUUIDPipe, Patch, Post, Res, UseGuards } from '@nestjs/common';
 import type { Response } from 'express';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
@@ -49,7 +41,6 @@ export class MiCuentaController {
   @ApiOperation({ summary: 'Cambia la contraseña verificando la actual' })
   async contrasena(@UsuarioActual() usuario: UsuarioAutenticado, @Body() datos: CambiarContrasenaDto, @Res({ passthrough: true }) respuesta: Response) {
     const socio = await this.miCuenta.cambiarContrasena(usuario.id, datos.actual, datos.nueva);
-    // Las demás sesiones se cerraron; esta sigue con un pase nuevo.
     guardarCookieSesion(respuesta, this.autenticacion.emitirPase(socio, Boolean(usuario.recordar)), Boolean(usuario.recordar));
     return { ok: true };
   }

@@ -1,11 +1,3 @@
-// =====================================================================
-// autenticacion.module.ts
-// -----------------------------------------------------------------------
-// Agrupa todas las piezas del módulo de autenticación: controlador,
-// servicio y la estrategia JWT. También configura JwtModule con el
-// secreto y tiempo de expiración leídos desde el .env.
-// =====================================================================
-
 import { Module } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
@@ -20,7 +12,7 @@ import { PersonalModule } from '../personal/personal.module';
 
 @Module({
   imports: [
-    SociosModule, // necesitamos buscar socios por email para el login
+    SociosModule,
     RegistroCambiosModule,
     MensajesModule,
     PersonalModule,

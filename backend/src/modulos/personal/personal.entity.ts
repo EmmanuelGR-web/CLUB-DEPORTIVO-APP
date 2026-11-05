@@ -2,12 +2,11 @@ import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateCol
 
 export interface Ausencia {
   motivo: 'Vacaciones' | 'Licencia médica' | 'Licencia personal' | 'Suspensión';
-  desde: string; // AAAA-MM-DD
+  desde: string;
   hasta: string;
   nota?: string;
 }
 
-// Nómina del club. usuario_id vincula a quien tiene cuenta en el portal.
 @Entity('personal')
 export class Personal {
   @PrimaryGeneratedColumn('uuid')
@@ -60,7 +59,7 @@ export class Personal {
 }
 
 export interface Tramo {
-  inicio: number; // milisegundos
+  inicio: number;
   fin: number | null;
 }
 

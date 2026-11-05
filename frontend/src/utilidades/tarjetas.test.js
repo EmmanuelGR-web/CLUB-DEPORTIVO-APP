@@ -9,7 +9,6 @@ import {
   vencimientoValido,
 } from './tarjetas'
 
-// Números de prueba públicos de las redes (pasan Luhn, no son tarjetas reales).
 const VISA = '4242424242424242'
 const MASTERCARD = '5555555555554444'
 const MASTERCARD_SERIE_2 = '2223003122003222'

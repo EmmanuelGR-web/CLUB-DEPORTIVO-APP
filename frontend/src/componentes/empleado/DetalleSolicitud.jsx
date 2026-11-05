@@ -83,7 +83,6 @@ function DetalleSolicitud({ solicitud, mostrar, onCerrar, onResolver }) {
   const [archivo, setArchivo] = useState(null)
   const [resolviendo, setResolviendo] = useState(false)
 
-  // El comprobante se trae del servidor recién cuando se abre la solicitud.
   const idComprobante = mostrar ? solicitud?.comprobante?.id : null
   useEffect(() => {
     setArchivo(null)

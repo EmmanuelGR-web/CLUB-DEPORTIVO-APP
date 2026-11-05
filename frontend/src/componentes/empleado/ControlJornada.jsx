@@ -8,8 +8,6 @@ import { descansoPermitido, estadoJornada, horaCorta, intervaloActividad, reloj,
 import { jornadaApi } from '../../servicios/gestionApi'
 import { alertaError, alertaExito } from '../../utilidades/alertas'
 
-// La jornada se guarda en el servidor: el panel avisa cada 20 segundos
-// que la persona sigue conectada, así la dirección la ve en vivo.
 function ControlJornada() {
   const { cerrarSesion } = useSesion()
   const router = useRouter()

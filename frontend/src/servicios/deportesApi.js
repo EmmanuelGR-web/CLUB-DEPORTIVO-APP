@@ -1,7 +1,3 @@
-// Calendario y tabla del fútbol desde la API pública de ESPN. Por defecto
-// muestra a San Martín de Tucumán (17814) en la Primera Nacional (arg.2);
-// con las variables NEXT_PUBLIC_DEPORTES_* se cambia de equipo o de liga.
-
 const urlDeportes = process.env.NEXT_PUBLIC_DEPORTES_URL || 'https://site.api.espn.com/apis'
 const equipo = process.env.NEXT_PUBLIC_DEPORTES_EQUIPO || '17814'
 const liga = process.env.NEXT_PUBLIC_DEPORTES_LIGA || 'arg.2'

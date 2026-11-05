@@ -1,13 +1,3 @@
-// =====================================================================
-// autenticacion.controller.ts
-// -----------------------------------------------------------------------
-// Define las RUTAS HTTP relacionadas al login. Este controlador es
-// "delgado" a propósito: no tiene lógica de negocio, solo recibe la
-// petición, la valida (gracias al DTO) y le pasa el trabajo al
-// AutenticacionService. Lo único que hace por su cuenta es guardar o
-// borrar la cookie de sesión.
-// =====================================================================
-
 import { Body, Controller, Get, HttpCode, HttpStatus, Post, Res, UseGuards } from '@nestjs/common';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
@@ -24,8 +14,6 @@ import { borrarCookieSesion, guardarCookieSesion } from './sesion';
 export class AutenticacionController {
   constructor(private readonly autenticacionService: AutenticacionService) {}
 
-  // Límite por red, además del bloqueo por cuenta: frena a quien prueba
-  // contraseñas contra muchos correos distintos.
   @Post('login')
   @HttpCode(HttpStatus.OK)
   @Throttle({ general: { limit: 20, ttl: 60_000 } })

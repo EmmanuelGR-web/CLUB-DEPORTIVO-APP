@@ -4,9 +4,6 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 
 const cadaCuanto = 10000
 
-// Consulta los datos al entrar, cada 10 segundos y cada vez que la
-// pestaña vuelve a tener foco, así el panel se actualiza solo cuando
-// otro usuario cambia algo.
 export function useDatosEnVivo(leer) {
   const [datos, setDatos] = useState(null)
   const [actualizado, setActualizado] = useState(null)

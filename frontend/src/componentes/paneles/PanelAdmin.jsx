@@ -37,8 +37,6 @@ const titulos = {
 
 const direccion = { nombre: 'Laura Gómez', puesto: 'Administradora principal' }
 
-// Además de lo que manda el servidor, cuenta cuántos del personal están
-// en actividad hoy y cuántos están conectados ahora.
 const leer = async () => {
   const datos = await obtenerPanelAdmin()
   const ahora = Date.now()
