@@ -1,11 +1,3 @@
-// =====================================================================
-// registrar-socio.dto.ts
-// -----------------------------------------------------------------------
-// Datos del alta online. Además de los datos personales llegan la
-// selfie del carnet, el medio de pago y lo que leyó la IA del DNI
-// (para que el personal vea qué se leyó y qué corrigió el socio).
-// =====================================================================
-
 import { Equals, IsEmail, IsObject, IsOptional, IsString, Matches, MaxLength, MinLength } from 'class-validator';
 import { MENSAJE_CONTRASENA, REGLA_CONTRASENA } from '../../../comun/utilidades/contrasenas.util';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';

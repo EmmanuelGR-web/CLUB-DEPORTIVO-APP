@@ -1,7 +1,5 @@
 import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
-// Comprobantes de pago y adjuntos de mensajes. El contenido (data URL)
-// tiene select: false: solo se lee cuando alguien abre el archivo.
 @Entity('archivos')
 export class Archivo {
   @PrimaryGeneratedColumn('uuid')

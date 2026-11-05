@@ -1,9 +1,6 @@
 import { Column, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 import { ArchivoAdjunto } from '../archivos/archivo.entity';
 
-// Un hilo 'socio' es la conversación de un socio con administración.
-// Un hilo 'interno' es entre la dirección y una persona del personal
-// (personal_id); en ese caso leidoPorSocio es "leído por el empleado".
 @Entity('hilos')
 export class Hilo {
   @PrimaryGeneratedColumn('uuid')

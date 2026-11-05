@@ -12,7 +12,6 @@ import { CORREO_ADMINISTRACION, correoInstitucional } from '../../comun/utilidad
 
 const AUTOR_SOCIO = { nombre: 'Socio', esSocio: true };
 
-// La bandeja como la muestra el panel: cada mensaje dice si es del club.
 const aBandeja = (hilo: Hilo) => ({
   id: hilo.id,
   asunto: hilo.asunto,
@@ -51,8 +50,6 @@ export class MiCuentaService {
     if (actual === nueva) throw new BadRequestException('La contraseña nueva tiene que ser distinta de la actual.');
     socio.contrasenaHash = await cifrarContrasena(nueva);
     socio.debeCambiarContrasena = false;
-    // Cierra la sesión en los demás dispositivos: sus pases quedan con
-    // la versión anterior.
     socio.versionSesion = (socio.versionSesion ?? 0) + 1;
     await this.socios.guardar(socio);
     await this.registro.registrar({

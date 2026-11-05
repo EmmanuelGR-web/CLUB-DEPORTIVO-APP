@@ -1,19 +1,3 @@
-// =====================================================================
-// sembrar.js
-// -----------------------------------------------------------------------
-// Carga el padrón de prueba: los usuarios del portal (socio, personal
-// administrativo y administración principal), socios de ejemplo con
-// sus cuotas pagadas, una en revisión y un alta esperando validación,
-// la nómina del personal y las noticias.
-//
-//   npm run sembrar
-//
-// Se puede correr las veces que haga falta: los usuarios se buscan por
-// email y sus pagos, mensajes y registros se vuelven a armar desde cero.
-// No toca ninguna otra cuenta. Usa las mismas reglas de cuotas que el
-// backend (por eso compila antes de correr).
-// =====================================================================
-
 const { randomUUID } = require('node:crypto');
 const bcrypt = require('bcrypt');
 const { Client } = require('pg');
@@ -42,7 +26,6 @@ const USUARIOS = [
   },
 ];
 
-// Socios de ejemplo del padrón. Entran con la contraseña "socio123".
 const SOCIOS_EJEMPLO = [
   { nombre: 'Ricardo', apellido: 'Álvarez', dni: '20145879', fechaNacimiento: '1968-04-02', direccion: 'Av. Mate de Luna 2150, San Miguel de Tucumán', telefono: '381 421-5566', email: 'ricardo.alvarez@mail.com', fechaAlta: '2009-04-18', medioPago: tarjeta('bna', 'visa', '4410', true) },
   { nombre: 'Marta', apellido: 'Giménez', dni: '23987451', fechaNacimiento: '1974-09-21', direccion: 'Crisóstomo Álvarez 870, San Miguel de Tucumán', telefono: '381 430-1122', email: 'marta.gimenez@mail.com', fechaAlta: '2013-08-05', medioPago: efectivo, mesActual: { estado: 'aprobado', medio: 'Efectivo', dia: 8 } },
@@ -64,7 +47,6 @@ const COMPROBANTE_SOFIA = `data:image/svg+xml;base64,${Buffer.from(
   '<svg xmlns="http://www.w3.org/2000/svg" width="480" height="300"><rect width="480" height="300" fill="#fbf5ea"/><rect width="480" height="56" fill="#7a0f2e"/><text x="24" y="36" font-family="Arial" font-size="20" fill="#fff">Comprobante de transferencia</text><text x="24" y="104" font-family="Arial" font-size="16" fill="#1e1b24">Origen: Sofía Romero · Banco Macro</text><text x="24" y="136" font-family="Arial" font-size="16" fill="#1e1b24">Destino: Club Deportivo · CBU 0000003100012345678901</text><text x="24" y="168" font-family="Arial" font-size="16" fill="#1e1b24">Concepto: cuota social</text><text x="24" y="220" font-family="Arial" font-size="28" font-weight="bold" fill="#7a0f2e">$ 15.000</text><text x="24" y="270" font-family="Arial" font-size="13" fill="#6b6475">Operación N° 88412037 · Transferencia inmediata</text></svg>',
 ).toString('base64')}`;
 
-// Nómina del club. Solo Pedro Díaz tiene usuario del portal en la demo.
 const PERSONAL = [
   { codigo: 'A01', nombre: 'Pedro Díaz', dni: '30125478', rol: 'Administrativo', sector: 'Atención al socio', correo: 'pedro.diaz@clubdeportivo.com.ar', telefono: 'Interno 214', dias: 'Lunes a viernes', entrada: '09:00', salida: '17:00', ingreso: '2019-03-01', usuario: 'administrativo@club.com' },
   { codigo: 'A02', nombre: 'Ana García', dni: '32874105', rol: 'Administrativo', sector: 'Atención al socio', correo: 'ana.garcia@clubdeportivo.com.ar', telefono: 'Interno 215', dias: 'Lunes a viernes', entrada: '13:00', salida: '21:00', ingreso: '2021-07-12' },
@@ -117,7 +99,6 @@ async function sembrar() {
       const { id, id_socio: numero } = rows[0];
       const nombreCompleto = `${u.nombre} ${u.apellido}`;
 
-      // Se rehace todo lo que depende del socio.
       await db.query('DELETE FROM pagos WHERE socio_id = $1', [id]);
       await db.query('DELETE FROM hilos WHERE socio_id = $1', [id]);
       await db.query('DELETE FROM registro_cambios WHERE socio_id = $1', [id]);
@@ -129,7 +110,6 @@ async function sembrar() {
       if (u.rol === 'socio' && u.estado !== 'En validación') {
         for (const p of periodos) {
           const esActual = p.anio === hoy.getFullYear() && p.mes === hoy.getMonth();
-          // Los meses anteriores quedan pagados; el actual depende del socio.
           if (esActual && !debita && !u.mesActual) continue;
           const pagoId = randomUUID();
           const actual = esActual ? u.mesActual : null;
@@ -193,7 +173,6 @@ async function sembrar() {
       console.log(`  ✔ ${u.rol.padEnd(15)} ${u.email.padEnd(28)} N.º ${numero}`);
     }
 
-    // Personal del club y su canal interno con la dirección.
     await db.query('DELETE FROM hilos WHERE personal_id IS NOT NULL');
     for (const persona of PERSONAL) {
       const { rows: usuario } = persona.usuario ? await db.query('SELECT id FROM socios WHERE email = $1', [persona.usuario]) : { rows: [] };

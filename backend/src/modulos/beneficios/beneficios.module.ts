@@ -1,11 +1,3 @@
-// =====================================================================
-// beneficios.module.ts
-// -----------------------------------------------------------------------
-// Beneficios para socios. Los ve cualquier usuario con sesión; los
-// publican, editan o borran el personal administrativo y la
-// administración principal.
-// =====================================================================
-
 import { Body, Controller, Delete, Get, HttpCode, Injectable, Module, NotFoundException, Param, ParseUUIDPipe, Patch, Post, UseGuards } from '@nestjs/common';
 import { InjectRepository, TypeOrmModule } from '@nestjs/typeorm';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
@@ -60,7 +52,6 @@ export class BeneficiosService {
   }
 
   async crear(datos: BeneficioDto) {
-    // Los nuevos van al final de la lista.
     const ultimo = await this.repositorio.maximum('orden');
     return this.repositorio.save(this.repositorio.create({ ...datos, extra: datos.extra ?? '', orden: datos.orden ?? (ultimo ?? 0) + 1 }));
   }

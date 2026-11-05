@@ -73,7 +73,6 @@ describe('cuotas.util', () => {
     });
 
     it('redondea el recargo a pesos enteros', () => {
-      // 21.000 × 0,1 % × 1 día = 21; 15.000 × 0,1 % × 3 días = 45
       expect(calcularCuota(21000, new Date(2026, 9, 16, 8), vence).recargo).toBe(21);
       expect(calcularCuota(15000, new Date(2026, 9, 18, 8), vence).recargo).toBe(45);
     });
@@ -103,7 +102,6 @@ describe('cuotas.util', () => {
 
     it('la cuota es de $15.000 para todas las categorías', () => {
       expect(CUOTA_MENSUAL).toBe(15000);
-      // Socio desde 2016: pasa por Bronce, Plata y Oro y siempre paga lo mismo.
       const periodos = periodosDesdeAlta(new Date(2016, 2, 1), new Date(2026, 4, 1));
       const base = (periodo: string) => periodos.find((p) => p.periodo === periodo).base;
       expect(categoriaPorAntiguedad(aniosEntre(new Date(2016, 2, 1), new Date(2018, 1, 1)))).toBe('Bronce');

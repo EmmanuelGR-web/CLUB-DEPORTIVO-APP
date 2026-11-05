@@ -1,12 +1,3 @@
-// =====================================================================
-// mensajes.service.ts
-// -----------------------------------------------------------------------
-// Bandeja de entrada del portal. Cada hilo tiene dos marcas de leído:
-// la del socio (o del empleado, en un hilo interno) y la del club.
-// Los adjuntos se guardan en la tabla archivos y el mensaje solo
-// guarda nombre, tipo y tamaño.
-// =====================================================================
-
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, EntityManager, Repository } from 'typeorm';
@@ -36,8 +27,6 @@ export class MensajesService {
     private readonly fuente: DataSource,
   ) {}
 
-  // Hilos de un socio (o de un empleado en el canal interno), con sus
-  // mensajes en orden y el más reciente primero.
   hilosDe(socioId: string) {
     return this.repositorioHilos.find({
       where: { socioId, tipo: 'socio' },
@@ -46,7 +35,6 @@ export class MensajesService {
     });
   }
 
-  // Todas las conversaciones de socios, para el personal.
   hilosDeSocios() {
     return this.repositorioHilos.find({
       where: { tipo: 'socio' },
@@ -55,7 +43,6 @@ export class MensajesService {
     });
   }
 
-  // Canal interno: de una persona del personal o, sin filtro, todos.
   hilosInternos(personalId?: string) {
     return this.repositorioHilos.find({
       where: { tipo: 'interno', ...(personalId ? { personalId } : {}) },
@@ -119,7 +106,6 @@ export class MensajesService {
     this.validar(mensaje, false);
     return this.fuente.transaction(async (gestor) => {
       await this.agregarMensaje(gestor, hilo.id, remitente, mensaje);
-      // Quien responde ya lo leyó; el otro lado lo ve como nuevo.
       await gestor.getRepository(Hilo).update(hilo.id, {
         leidoPorSocio: !remitente.delClub,
         leidoPorClub: remitente.delClub,
