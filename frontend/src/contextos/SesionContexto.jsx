@@ -1,15 +1,5 @@
 'use client'
 
-// =====================================================================
-// SesionContexto.jsx
-// -----------------------------------------------------------------------
-// Sesión del usuario en todo el portal. El pase de sesión lo guarda el
-// navegador en una cookie httpOnly que pone el backend: el código de la
-// página nunca lo ve. Acá solo se guardan los datos para mostrar (nombre,
-// rol, panel), que se piden al backend al abrir el sitio.
-// "Mantener sesión iniciada" hace que la cookie dure 30 días; si no, se
-// borra al cerrar el navegador.
-// =====================================================================
 
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
@@ -20,14 +10,11 @@ import { useRegistrarNavegacion } from '../hooks/useNavegacionInterna'
 
 const SesionContexto = createContext(null)
 
-// Las versiones anteriores guardaban el pase en el almacenamiento del
-// navegador: se borra para que no quede expuesto.
 const borrarSesionAnterior = () => {
   try {
     localStorage.removeItem('sesionClub')
     sessionStorage.removeItem('sesionClub')
   } catch {
-    // Sin almacenamiento no hay nada que borrar.
   }
 }
 
@@ -56,7 +43,6 @@ export function SesionProveedor({ children }) {
     try {
       await cerrarSesionApi()
     } catch {
-      // Si el servidor no responde, la cookie vence sola.
     }
   }, [])
 
@@ -70,10 +56,6 @@ export function SesionProveedor({ children }) {
     })
   }, [router])
 
-  // Devuelve los datos del usuario, null si las credenciales no son
-  // correctas, { bloqueado } si el personal está de licencia o la cuenta
-  // quedó bloqueada por intentos fallidos, o { errorConexion } si el
-  // servidor no respondió.
   const iniciarSesion = async (email, contrasena, recordar) => {
     try {
       const { usuario: datos } = await iniciarSesionApi(email.trim().toLowerCase(), contrasena, Boolean(recordar))

@@ -1,18 +1,3 @@
-// =====================================================================
-// gestion.service.ts
-// -----------------------------------------------------------------------
-// Lo que hace el personal del club desde su panel: revisar solicitudes,
-// atender el padrón, responder mensajes de socios, dar altas en la sede
-// y hablar con la dirección por el canal interno.
-//
-// Las solicitudes no se guardan aparte: salen de tres lugares.
-//   - Altas online: registro "Alta de socio" pendiente.
-//   - Cambios que hizo el socio en su cuenta (registro con autor Socio).
-//     Los de documento esperan aprobación; el resto ya se aplicó y, si
-//     se rechaza, se vuelve al dato anterior.
-//   - Comprobantes de pago informados por el socio.
-// =====================================================================
-
 import { BadRequestException, ConflictException, ForbiddenException, Injectable } from '@nestjs/common';
 import { cifrarContrasena, contrasenaTemporal } from '../../comun/utilidades/contrasenas.util';
 import { SociosService, normalizarDni } from '../socios/socios.service';
@@ -50,7 +35,6 @@ function detalleIdentidad(r: RegistroCambio) {
 const tipoDeCambio = (r: RegistroCambio) =>
   r.pendiente ? 'Cambio de nombre, DNI o nacimiento' : r.seccion === 'Datos personales' ? 'Cambio de contacto o domicilio' : r.seccion;
 
-// Formato del canal interno que usa el panel.
 const aInterno = (hilo: Hilo, persona: Personal | undefined) => ({
   id: hilo.id,
   asunto: hilo.asunto,
@@ -83,9 +67,6 @@ export class GestionService {
     private readonly jornadas: JornadasService,
   ) {}
 
-  // ------------------------------------------------------------------
-  // Panel
-  // ------------------------------------------------------------------
 
   async listarPerfiles() {
     const socios = (await this.socios.listar()).filter((s) => s.rol === Rol.SOCIO && s.activo);
@@ -113,9 +94,6 @@ export class GestionService {
     };
   }
 
-  // ------------------------------------------------------------------
-  // Solicitudes
-  // ------------------------------------------------------------------
 
   async solicitudes() {
     const [registros, pagos, socios] = await Promise.all([this.registro.listarTodos(2000), this.pagos.informadosConComprobante(), this.socios.listar()]);
@@ -165,7 +143,6 @@ export class GestionService {
         };
       });
 
-    // Un mismo número de operación en dos comprobantes distintos es sospechoso.
     const operaciones = pagos.map((p) => ({ id: p.id, numero: soloDigitos(p.verificacionIA?.numeroOperacion) })).filter((o) => o.numero);
     const repetida = (pago: Pago) => {
       const numero = soloDigitos(pago.verificacionIA?.numeroOperacion);
@@ -267,9 +244,6 @@ export class GestionService {
     return (await this.solicitudes()).find((s) => s.id === id) ?? null;
   }
 
-  // ------------------------------------------------------------------
-  // Padrón y ficha del socio
-  // ------------------------------------------------------------------
 
   async ficha(socioId: string) {
     const socio = await this.socios.buscarPorId(socioId);
@@ -287,8 +261,6 @@ export class GestionService {
   async restablecerContrasena(usuario: UsuarioAutenticado, socioId: string) {
     const firma = await this.personal.firma(usuario);
     const socio = await this.socios.buscarPorIdConContrasena(socioId);
-    // Contraseña temporal al azar, que el personal le pasa al socio en
-    // persona. El DNI no sirve: lo conoce mucha gente.
     const temporal = contrasenaTemporal();
     socio.contrasenaHash = await cifrarContrasena(temporal);
     socio.debeCambiarContrasena = true;
@@ -304,8 +276,6 @@ export class GestionService {
     return { contrasena: temporal, ...(await this.ficha(socioId)) };
   }
 
-  // Solo la administración principal puede dar de baja: el socio deja
-  // de figurar en el padrón, pero sus pagos quedan como historial.
   async darDeBaja(usuario: UsuarioAutenticado, socioId: string) {
     if (usuario.rol !== Rol.ADMIN_PRINCIPAL) throw new ForbiddenException('Solo la administración principal puede dar de baja socios.');
     const firma = await this.personal.firma(usuario);
@@ -369,9 +339,6 @@ export class GestionService {
     return { nombre: socio.nombreCompleto, email: socio.email, contrasena: temporal };
   }
 
-  // ------------------------------------------------------------------
-  // Mensajes de socios
-  // ------------------------------------------------------------------
 
   async conversaciones() {
     const [hilos, socios] = await Promise.all([this.mensajes.hilosDeSocios(), this.socios.listar()]);
@@ -406,9 +373,6 @@ export class GestionService {
     return this.conversaciones();
   }
 
-  // ------------------------------------------------------------------
-  // Canal interno con la dirección
-  // ------------------------------------------------------------------
 
   async internos(usuario: UsuarioAutenticado) {
     const nomina = await this.personal.listar();
@@ -471,9 +435,6 @@ export class GestionService {
     await this.mensajes.marcarLeido(hilo, usuario.rol === Rol.ADMIN_PRINCIPAL ? 'club' : 'socio');
   }
 
-  // ------------------------------------------------------------------
-  // Jornada del empleado
-  // ------------------------------------------------------------------
 
   private async personaDe(usuario: UsuarioAutenticado) {
     const persona = await this.personal.deUsuario(usuario.id);

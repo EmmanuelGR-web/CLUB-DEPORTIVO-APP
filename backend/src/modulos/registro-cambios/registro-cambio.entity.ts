@@ -8,9 +8,6 @@ export interface CambioVisible {
 
 export type ValoresCambio = Record<string, { anterior: unknown; nuevo: unknown }>;
 
-// Constancia de cada modificación de una cuenta. Las que necesitan
-// aprobación quedan con pendiente = true hasta que el personal las
-// autoriza o las rechaza.
 @Entity('registro_cambios')
 export class RegistroCambio {
   @PrimaryGeneratedColumn('uuid')

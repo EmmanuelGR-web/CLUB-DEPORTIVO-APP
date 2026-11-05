@@ -52,8 +52,6 @@ export class RegistroCambiosService {
     return this.repositorio.find({ where: { socioId }, order: { fecha: 'DESC' } });
   }
 
-  // Pedido de cambio de nombre, DNI o nacimiento que todavía espera
-  // la aprobación del personal.
   identidadPendiente(socioId: string) {
     return this.repositorio.findOne({
       where: { socioId, pendiente: true, resuelto: IsNull(), seccion: 'Datos de identidad' },

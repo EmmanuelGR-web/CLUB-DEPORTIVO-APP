@@ -1,13 +1,3 @@
-/* =====================================================================
-   global.css
-   -----------------------------------------------------------------------
-   Identidad del club sobre Bootstrap 5.3. Los colores se cargan como
-   variables de Bootstrap, así botones, badges y formularios toman la
-   paleta solos. El modo oscuro usa data-bs-theme="dark": las tarjetas
-   usan .bg-body (blanco en claro, gris oscuro en oscuro) y el fondo de
-   los paneles .bg-body-tertiary (crema en claro, casi negro en oscuro).
-   ===================================================================== */
-
 :root {
   --club-rojo: #d7263d;
   --club-rojo-hover: #b91d32;
@@ -100,9 +90,6 @@ body {
   min-width: 320px;
 }
 
-/* En modo oscuro el bordó no se lee sobre fondo oscuro: los títulos y
-   textos "secundarios" pasan a un rosa claro. Los fondos bordó
-   (botones, barra lateral) siguen igual. */
 [data-bs-theme='dark'] .text-secondary {
   color: var(--club-titulo) !important;
 }
@@ -219,7 +206,6 @@ body {
   outline-offset: 2px;
 }
 
-/* Tabla de movimientos: en el celular se muestra como lista. */
 @media (max-width: 767.98px) {
   .tabla-escritorio {
     display: none;
@@ -242,9 +228,6 @@ body {
   }
 }
 
-/* --- Encabezado de los paneles ------------------------------------------
-   El título se achica en pantallas chicas para que entre en una sola
-   línea junto al botón del menú y el de actualizar. */
 .titulo-panel {
   font-size: clamp(1.05rem, 0.75rem + 1.6vw, 1.75rem);
   line-height: 1.15;
@@ -252,7 +235,6 @@ body {
   overflow-wrap: anywhere;
 }
 
-/* --- Barra fija inferior del socio (solo celular y tablet) --------------- */
 .barra-inferior {
   position: fixed;
   left: 0;
@@ -295,7 +277,6 @@ body {
   color: var(--club-dorado);
 }
 
-/* El resumen va en el medio, más grande y levantado. */
 .barra-inferior .boton-central span.circulo {
   width: 58px;
   height: 58px;
@@ -333,7 +314,6 @@ body {
   }
 }
 
-/* --- Tarjetas de noticias y beneficios del socio -------------------------- */
 .tarjeta-noticia {
   transition: transform 200ms ease, box-shadow 200ms ease;
 }
@@ -349,10 +329,7 @@ body {
   object-fit: cover;
 }
 
-/* ---------- Página de inicio ---------- */
 
-/* En el modo oscuro, los botones grafito de la página de inicio se
-   aclaran para no perderse sobre las tarjetas. */
 [data-bs-theme='dark'] .btn-dark {
   --bs-btn-bg: #3a3442;
   --bs-btn-border-color: #4a4352;
@@ -377,8 +354,6 @@ body {
 }
 
 
-/* Las alertas toman el fondo del modo oscuro: los títulos y textos usan
-   los colores del tema y sobre el blanco de SweetAlert no se leían. */
 [data-bs-theme='dark'] .swal2-popup {
   background: #1f1b24;
   color: #e9e4ee;

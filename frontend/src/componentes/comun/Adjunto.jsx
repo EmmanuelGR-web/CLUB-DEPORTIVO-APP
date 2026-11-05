@@ -6,7 +6,6 @@ import { FaPaperclip } from 'react-icons/fa'
 import { descargarArchivo, tamanioLegible } from '../../utilidades/mensajes'
 import { alertaError } from '../../utilidades/alertas'
 
-// Enlace a un archivo guardado en el servidor: lo trae recién cuando se toca.
 function Adjunto({ archivo, texto, className = 'd-inline-block small link-secondary me-3' }) {
   const [bajando, setBajando] = useState(false)
 

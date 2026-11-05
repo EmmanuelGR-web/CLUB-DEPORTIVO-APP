@@ -10,8 +10,6 @@ import { alertaError, alertaExito, confirmarBorrado } from '../../utilidades/ale
 
 const vacio = { titulo: '', detalle: '', extra: '', descripcion: '' }
 
-// Alta, edición y borrado de los beneficios que ven los socios. La usan
-// el personal administrativo y la administración principal.
 function GestionBeneficios() {
   const { datos: beneficios, cargando, error, recargar } = useConsulta(listarBeneficios)
   const [editando, setEditando] = useState(null)

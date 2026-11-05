@@ -1,6 +1,5 @@
 import { IsEmail, IsObject, IsOptional, IsString, Matches, MaxLength, MinLength } from 'class-validator';
 
-// Alta que hace el personal en la sede: el DNI se verificó en persona.
 export class AltaPresencialDto {
   @IsString() @MinLength(2, { message: 'Ingresá el nombre.' }) @MaxLength(100) nombre: string;
   @IsString() @MinLength(2, { message: 'Ingresá el apellido.' }) @MaxLength(100) apellido: string;

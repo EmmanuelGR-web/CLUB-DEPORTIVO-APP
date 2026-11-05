@@ -6,8 +6,6 @@ import { FaGift } from 'react-icons/fa'
 
 const degradado = 'linear-gradient(145deg, #d7263d 0%, #7a0f2e 55%, #2a0710 100%)'
 
-// Todos los beneficios del socio en tarjetas; al tocar una se abren
-// las condiciones, como en la cinta del resumen.
 function BeneficiosSocio({ beneficios, socio }) {
   const [abierto, setAbierto] = useState(null)
 

@@ -1,12 +1,3 @@
-// =====================================================================
-// migrar.js
-// -----------------------------------------------------------------------
-// Aplica un script de /migraciones dentro de una transacción: si alguna
-// sentencia falla, no queda nada a medias.
-//
-//   npm run migrar -- migraciones/003_portal_del_socio.sql
-// =====================================================================
-
 const fs = require('node:fs');
 const { Client } = require('pg');
 

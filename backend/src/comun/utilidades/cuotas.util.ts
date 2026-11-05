@@ -1,26 +1,9 @@
-// =====================================================================
-// cuotas.util.ts
-// -----------------------------------------------------------------------
-// Reglas de la cuota social, en un solo lugar para que el socio, el
-// personal y los reportes calculen siempre lo mismo:
-//
-//   - La cuota se genera sola cada mes desde el mes de alta.
-//   - El monto es el mismo para todos los socios. La categoría
-//     (Bronce, Plata u Oro) sube con la antigüedad y no cambia el
-//     precio de la cuota.
-//   - El primer mes se cobra doble (inscripción + cuota).
-//   - Vence el día 15. El primer vencimiento es el 15 de ese mes o
-//     10 días después del alta, lo que llegue más tarde.
-//   - Después del vencimiento se suma 0,1 % por día de demora.
-// =====================================================================
-
 export const DIA_VENCIMIENTO = 15;
 export const INTERES_DIARIO = 0.001;
 export const CUOTA_MENSUAL = 15000;
 
 const UN_DIA = 24 * 3600 * 1000;
 
-// Años con decimales entre dos fechas, como se usa para la categoría.
 export const aniosEntre = (desde: Date, hasta: Date) => (hasta.getTime() - desde.getTime()) / (365.25 * UN_DIA);
 
 export const categoriaPorAntiguedad = (anios: number) => (anios <= 2 ? 'Bronce' : anios <= 10 ? 'Plata' : 'Oro');
@@ -47,15 +30,13 @@ export const textoPeriodo = (anio: number, mes: number) => `${anio}-${String(mes
 export interface PeriodoCuota {
   periodo: string;
   anio: number;
-  mes: number; // 0 a 11
-  indice: number; // 0 = mes de alta
+  mes: number;
+  indice: number;
   concepto: 'Inscripción y cuota' | 'Cuota mensual';
   base: number;
   vence: Date;
 }
 
-// Lista los períodos que el socio tiene que pagar, del más viejo al
-// más nuevo, hasta el mes de `hoy` incluido.
 export function periodosDesdeAlta(fechaAlta: Date, hoy = new Date()): PeriodoCuota[] {
   const periodos: PeriodoCuota[] = [];
   const mes = new Date(fechaAlta.getFullYear(), fechaAlta.getMonth(), 1);

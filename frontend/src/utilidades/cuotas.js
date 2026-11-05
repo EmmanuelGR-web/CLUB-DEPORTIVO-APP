@@ -1,6 +1,3 @@
-// Las mismas reglas que usa el backend (cuotas.util.ts), para mostrarle
-// al socio cuánto le queda la cuota según la fecha en que pagó.
-
 export const diaVencimiento = 15
 export const interesDiario = 0.001
 

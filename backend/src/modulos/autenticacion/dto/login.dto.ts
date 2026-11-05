@@ -1,12 +1,3 @@
-// =====================================================================
-// login.dto.ts
-// -----------------------------------------------------------------------
-// Un "DTO" (Data Transfer Object) define QUÉ datos esperamos recibir
-// en una petición, y con QUÉ reglas de validación. NestJS valida esto
-// automáticamente gracias al ValidationPipe global que configuramos
-// en main.ts, así no hay que escribir "if" a mano para validar.
-// =====================================================================
-
 import { IsBoolean, IsEmail, IsOptional, IsString, MaxLength, MinLength } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
@@ -21,8 +12,6 @@ export class LoginDto {
   @MaxLength(72)
   contrasena: string;
 
-  // "Mantener sesión iniciada": el pase dura 30 días en lugar de cerrarse
-  // con el navegador.
   @ApiProperty({ required: false, default: false })
   @IsOptional()
   @IsBoolean()

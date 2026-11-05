@@ -31,8 +31,6 @@ function PanelLayout({ titulo, children, onActualizar, actualizado, extra, barra
             variant="secondary"
             className="d-lg-none flex-shrink-0"
             onClick={(e) => {
-              // El menú tapa la página para los lectores de pantalla: el
-              // foco no puede quedar en este botón mientras está abierto.
               e.currentTarget.blur()
               setMenuAbierto(true)
             }}

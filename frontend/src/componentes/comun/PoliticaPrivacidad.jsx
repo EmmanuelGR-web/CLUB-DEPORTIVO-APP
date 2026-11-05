@@ -1,8 +1,5 @@
 'use client'
 
-// Texto de la política de privacidad del portal (Ley 25.326 de Protección
-// de los Datos Personales). Se muestra en /privacidad y en una ventana
-// dentro del registro, para no perder lo que se venía completando.
 
 import { contactoClub } from '../../datos/club'
 

@@ -16,8 +16,6 @@ function BarraNavegacion({ enlaces }) {
   const [esMobile, setEsMobile] = useState(false)
 
   
-  // El menú oculta la página a los lectores de pantalla: el foco se
-  // suelta antes de abrirlo y de cerrarlo.
   const abrir = () => {
     document.activeElement?.blur()
     setEsMobile(window.matchMedia('(max-width: 767.98px)').matches)

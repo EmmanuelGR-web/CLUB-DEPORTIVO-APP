@@ -1,11 +1,3 @@
-// =====================================================================
-// gestion.controller.ts
-// -----------------------------------------------------------------------
-// Rutas del panel del personal. Las usan el personal administrativo y
-// la administración principal; dar de baja socios queda solo para la
-// administración principal (se controla en el servicio).
-// =====================================================================
-
 import { Body, Controller, Delete, Get, HttpCode, Param, ParseUUIDPipe, Patch, Post, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { IsIn, IsOptional, IsString, MaxLength } from 'class-validator';

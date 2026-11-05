@@ -1,14 +1,3 @@
-// =====================================================================
-// pagos.service.ts
-// -----------------------------------------------------------------------
-// Arma el estado de cuenta del socio y registra los pagos informados.
-//
-// Cada mes desde el alta genera una cuota (ver cuotas.util.ts). Para
-// cada período se busca el pago vivo (pendiente o aprobado): si no hay,
-// la cuota figura Pendiente o Vencida con el recargo calculado a hoy.
-// Si el socio paga con débito automático, el cobro se registra solo.
-// =====================================================================
-
 import { BadRequestException, ConflictException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, In, IsNull, Not, Repository } from 'typeorm';
@@ -24,10 +13,10 @@ export const MEDIOS_INFORMADOS = ['Transferencia', 'Billetera virtual', 'Depósi
 export type EstadoCuota = 'Aprobado' | 'En revisión' | 'Pendiente' | 'Vencido';
 
 export interface CuotaEstadoCuenta {
-  id: string; // = periodo, para ordenar como en pantalla
+  id: string;
   pagoId: string | null;
   periodo: string;
-  fecha: string; // MM/AAAA
+  fecha: string;
   anio: number;
   concepto: string;
   medio: string;
@@ -73,7 +62,6 @@ export class PagosService {
     return this.repositorioPagos.find({ where: { socioId }, order: { informadoEn: 'DESC' } });
   }
 
-  // Cobra solas las cuotas sin pagar de quien tiene débito automático.
   private async debitarAutomaticamente(socio: Socio, periodos: PeriodoCuota[], pagos: Pago[], hoy: Date) {
     if (socio.medioPago?.tipo !== 'tarjeta' || !socio.medioPago.debitoAutomatico) return pagos;
     const vivos = new Set(pagos.filter((p) => p.estado !== EstadoPago.RECHAZADO).map((p) => p.periodo));
@@ -96,7 +84,6 @@ export class PagosService {
         resueltoEn: hoy,
       }),
     );
-    // Si dos pedidos llegan juntos, el índice único evita debitar dos veces.
     await this.repositorioPagos.createQueryBuilder().insert().values(nuevos).orIgnore().execute();
     return this.pagosDeSocio(socio.id);
   }
@@ -108,14 +95,11 @@ export class PagosService {
     return this.armarEstado(socio, periodos, pagos, comprobantes, hoy);
   }
 
-  // Estado de cuenta de muchos socios con dos consultas en total (para
-  // la facturación y el resumen económico de la administración).
   async estadosDeCuenta(socios: Socio[], hoy = new Date()) {
     const ids = socios.map((s) => s.id);
     let pagos = ids.length ? await this.repositorioPagos.find({ where: { socioId: In(ids) }, order: { informadoEn: 'DESC' } }) : [];
     const porSocio = (id: string) => pagos.filter((p) => p.socioId === id);
 
-    // Los débitos automáticos que falten se registran juntos.
     let debito = false;
     for (const socio of socios) {
       const antes = porSocio(socio.id);
@@ -131,7 +115,6 @@ export class PagosService {
   private armarEstado(socio: Socio, periodos: PeriodoCuota[], pagos: Pago[], comprobantePorId: Map<string, ArchivoAdjunto>, hoy: Date): CuotaEstadoCuenta[] {
     return periodos
       .map((p) => {
-        // pagos viene ordenado del más nuevo al más viejo.
         const delPeriodo = pagos.filter((pago) => pago.periodo === p.periodo);
         const vivo = delPeriodo.find((pago) => pago.estado !== EstadoPago.RECHAZADO);
         const ultimo = vivo ?? delPeriodo[0];
@@ -184,7 +167,6 @@ export class PagosService {
       .reverse();
   }
 
-  // Pagos que el socio informó con comprobante, para que el personal los revise.
   informadosConComprobante() {
     return this.repositorioPagos.find({ where: { comprobanteId: Not(IsNull()) }, order: { informadoEn: 'DESC' } });
   }
@@ -201,7 +183,6 @@ export class PagosService {
     return pago;
   }
 
-  // Al aprobar se genera el número de comprobante del club.
   async resolver(pago: Pago, aprobado: boolean, motivo: string, firma: string) {
     if (pago.estado !== EstadoPago.PENDIENTE) throw new ConflictException('Ese pago ya fue revisado.');
     pago.estado = aprobado ? EstadoPago.APROBADO : EstadoPago.RECHAZADO;
@@ -227,8 +208,6 @@ export class PagosService {
     });
     if (yaInformado) throw new ConflictException('Esa cuota ya tiene un pago informado.');
 
-    // El monto se calcula acá con la fecha que informa el socio: no se
-    // confía en el que manda el navegador.
     const cuota = calcularCuota(periodo.base, fechaPago, periodo.vence);
     const verificacion = datos.verificacionIA ? { ...datos.verificacionIA, montoEsperado: cuota.total } : null;
 

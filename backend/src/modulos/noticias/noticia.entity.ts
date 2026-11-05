@@ -20,7 +20,6 @@ export class Noticia {
   @Column({ type: 'jsonb', default: () => `'[]'` })
   cuerpo: string[];
 
-  // Link o data URL de una imagen ya optimizada en el navegador.
   @Column({ type: 'text', nullable: true })
   imagen: string | null;
 

@@ -1,11 +1,3 @@
-// =====================================================================
-// socios.service.ts
-// -----------------------------------------------------------------------
-// Acceso a la tabla de socios: buscar, crear y revisar duplicados.
-// Las reglas de qué cambios necesitan aprobación viven en
-// MiCuentaService (y en el panel del personal, más adelante).
-// =====================================================================
-
 import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { EntityManager, Not, Repository } from 'typeorm';
@@ -61,12 +53,10 @@ export class SociosService {
     return socio;
   }
 
-  // Lo mínimo para validar un pase de sesión en cada pedido.
   datosDeSesion(id: string) {
     return this.repositorioSocios.findOne({ where: { id }, select: { id: true, activo: true, versionSesion: true, rol: true, email: true } });
   }
 
-  // Cuenta un intento fallido y bloquea la cuenta al llegar al máximo.
   async registrarIntentoFallido(socio: Socio, maximo: number, minutos: number) {
     const intentos = (socio.intentosFallidos ?? 0) + 1;
     const bloquear = intentos >= maximo;
@@ -91,7 +81,6 @@ export class SociosService {
     return socio;
   }
 
-  // Devuelve qué dato ya usa otra cuenta: 'email', 'dni' o null.
   async buscarDuplicado({ email, dni }: { email?: string | null; dni?: string | null }, excluirId?: string) {
     const excluir = excluirId ? { id: Not(excluirId) } : {};
     if (email && (await this.repositorioSocios.exists({ where: { email: normalizarEmail(email), ...excluir } }))) return 'email';
@@ -131,7 +120,6 @@ export class SociosService {
       categoria: await this.categoriaPara(new Date(`${fechaAlta}T12:00:00`)),
     });
     const guardado = await repositorio.save(socio);
-    // id_socio lo completa la secuencia de la base: se vuelve a leer.
     return repositorio.findOneOrFail({ where: { id: guardado.id } });
   }
 
@@ -139,7 +127,6 @@ export class SociosService {
     return (gestor?.getRepository(Socio) ?? this.repositorioSocios).save(socio);
   }
 
-  // Mantiene categoria_id al día para los listados del personal.
   async categoriaPara(fechaAlta: Date, hoy = new Date()) {
     const nombre = categoriaPorAntiguedad(aniosEntre(fechaAlta, hoy));
     return this.repositorioCategorias.findOne({ where: { nombre } });
