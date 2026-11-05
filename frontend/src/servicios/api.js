@@ -1,19 +1,5 @@
-// =====================================================================
-// api.js
-// -----------------------------------------------------------------------
-// Cliente único para hablar con el backend del club. Traduce los
-// errores a mensajes que se pueden mostrar y corta la sesión si venció.
-//
-// Los pedidos van a /api en el mismo dominio del sitio, y Next los
-// reenvía al backend (ver next.config.js). Así la cookie de sesión es
-// propia del sitio: el navegador la manda sola y el código de la página
-// no la puede leer.
-// =====================================================================
-
 const URL_API = '/api'
 
-// El backend gratuito "duerme" cuando no se usa: el primer pedido puede
-// tardar cerca de un minuto en despertarlo.
 const TIEMPO_MAXIMO = 60000
 
 const mensajesPorEstado = {
@@ -30,14 +16,9 @@ export const configurarVencimiento = (accion) => {
   alVencerSesion = accion
 }
 
-// conSesion: false en los pedidos que no dependen de una sesión abierta
-// (ingresar, registrarse, ver noticias): un 401 ahí no es una sesión
-// vencida.
 export async function pedir(ruta, { metodo = 'GET', datos, conSesion = true } = {}) {
   const control = new AbortController()
   const temporizador = setTimeout(() => control.abort(), TIEMPO_MAXIMO)
-  // La cabecera propia le confirma al backend que el pedido sale del
-  // portal y no de otra página (protección contra CSRF).
   const cabeceras = { 'Content-Type': 'application/json', 'X-Club-Cliente': 'web' }
 
   let respuesta
@@ -61,7 +42,6 @@ export async function pedir(ruta, { metodo = 'GET', datos, conSesion = true } = 
   try {
     cuerpo = texto ? JSON.parse(texto) : null
   } catch {
-    // Respuesta que no es JSON (por ejemplo, una página de error).
   }
   if (!respuesta.ok) {
     if (respuesta.status === 401 && conSesion) alVencerSesion()

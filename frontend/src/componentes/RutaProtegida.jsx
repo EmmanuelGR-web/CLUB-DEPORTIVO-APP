@@ -13,7 +13,6 @@ export const pantallaCargando = (
   </div>
 )
 
-// Cada panel es solo para su rol: si entra otro, lo manda a su propio panel.
 function RutaProtegida({ roles, children }) {
   const { usuario, lista } = useSesion()
   const router = useRouter()

@@ -60,7 +60,6 @@ function GestionPersonal({ personal, jornadas, onCambio }) {
     onCambio()
   }
 
-  // Si el servidor rechaza un dato, el error sube al formulario para marcarlo.
   const guardar = async (datos) => {
     if (editando?.id) await actualizarPersonalApi([editando.id], datos)
     else await agregarPersonalApi(datos)

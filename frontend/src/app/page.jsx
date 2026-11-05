@@ -28,8 +28,6 @@ const consultarPartidos = async () => {
   return { partidos: [...ultimos, ...proximos], tabla }
 }
 
-// Página pública del club: historia, noticias, calendario, disciplinas,
-// galería y contacto. Las noticias son las que publica la administración.
 export default function PaginaInicio() {
   useTituloPagina('Inicio')
   const noticias = useConsulta(listarNoticias, 'No pudimos cargar las noticias')

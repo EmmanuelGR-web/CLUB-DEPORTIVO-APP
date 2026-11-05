@@ -58,7 +58,6 @@ function ContenidoSocio({ datos, recargar, actualizado, cambiarDatos }) {
 
   const sinLeer = hilos.filter((h) => !h.leido).length
   const items = menuSocio.map((item) => (item.id === 'bandeja' ? { ...item, contador: sinLeer } : item))
-  // Si hay más de una cuota abierta, primero se informa la más vieja.
   const cuotaAbierta = socio.pagos.filter((p) => ['Pendiente', 'Vencido', 'En revisión'].includes(p.estado)).at(-1)
 
   const guardarCambios = async (cambios, seccionCambiada) => {

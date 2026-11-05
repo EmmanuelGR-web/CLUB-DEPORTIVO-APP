@@ -9,7 +9,6 @@ const ROLES = ['socio']
 export default function PaginaSocio() {
   return (
     <RutaProtegida roles={ROLES}>
-      {/* La sección se lee de la dirección: Next.js pide un Suspense. */}
       <Suspense fallback={pantallaCargando}>
         <PanelSocio />
       </Suspense>

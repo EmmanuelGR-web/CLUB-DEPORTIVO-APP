@@ -8,8 +8,6 @@ import PiePagina from '@/componentes/layout/PiePagina'
 import PoliticaPrivacidad, { actualizacionPrivacidad } from '@/componentes/comun/PoliticaPrivacidad'
 import { huboNavegacionInterna } from '@/hooks/useNavegacionInterna'
 
-// Política de privacidad del portal según la Ley 25.326. "Volver" lleva a
-// la pantalla de la que se vino; si se entró directo con el link, al inicio.
 export default function PaginaPrivacidad() {
   useTituloPagina('Política de privacidad')
   const router = useRouter()

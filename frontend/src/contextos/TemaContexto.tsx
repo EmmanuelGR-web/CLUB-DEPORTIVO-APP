@@ -1,12 +1,5 @@
 'use client';
 
-// =====================================================================
-// TemaContexto.tsx
-// -----------------------------------------------------------------------
-// Modo claro / oscuro de todo el portal. Usa el modo nativo de
-// Bootstrap (data-bs-theme en <html>) y recuerda la elección. Si el
-// usuario nunca eligió, arranca con la preferencia del sistema.
-// =====================================================================
 
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 
@@ -24,7 +17,6 @@ const CLAVE = 'club:tema';
 export function TemaProveedor({ children }: { children: ReactNode }) {
   const [tema, setTema] = useState<Tema>('claro');
 
-  // El layout ya aplicó el tema antes de pintar; acá solo se lee.
   useEffect(() => {
     setTema(document.documentElement.getAttribute('data-bs-theme') === 'dark' ? 'oscuro' : 'claro');
   }, []);
@@ -36,7 +28,6 @@ export function TemaProveedor({ children }: { children: ReactNode }) {
     try {
       localStorage.setItem(CLAVE, nuevo);
     } catch {
-      // Sin almacenamiento el tema dura hasta recargar la página.
     }
   };
 

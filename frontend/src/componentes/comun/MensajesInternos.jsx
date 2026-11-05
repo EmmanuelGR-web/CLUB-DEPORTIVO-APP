@@ -11,8 +11,6 @@ export const nombreDireccion = 'Laura Gómez (Administradora principal)'
 
 const fechaCorta = (iso) => new Date(iso).toLocaleString('es-AR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })
 
-// Canal interno entre la dirección y el personal. El rol 'admin' ve las
-// conversaciones con todos y elige destinatario; el 'empleado' solo las suyas.
 function MensajesInternos({ rol, hilos, personal = [], onAbrir, onResponder, onCrear }) {
   const esAdmin = rol === 'admin'
   const [abierto, setAbierto] = useState(null)

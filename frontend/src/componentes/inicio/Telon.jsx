@@ -2,8 +2,6 @@
 
 import { useEffect, useRef, useState } from 'react'
 
-// Se muestra una sola vez por visita: al volver al inicio desde otra
-// pantalla ya no aparece.
 let yaSeMostro = false
 
 function Telon({ imagen, demora = 1200, duracion = 1400 }) {
@@ -20,7 +18,6 @@ function Telon({ imagen, demora = 1200, duracion = 1400 }) {
       return
     }
     yaSeMostro = true
-    // La imagen puede terminar de cargar antes de que React tome la página.
     if (foto.current?.complete) setImagenLista(true)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])

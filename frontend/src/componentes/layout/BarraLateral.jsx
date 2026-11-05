@@ -23,16 +23,11 @@ function BarraLateral({ usuario, detalle, items, activo, onSeleccionar, variante
   const esEscritorio = useEsEscritorio()
   const router = useRouter()
 
-  // Al cerrarse, el menú queda oculto para los lectores de pantalla: el
-  // foco se suelta antes para que no quede adentro.
   const cerrar = () => {
     document.activeElement?.blur()
     onCerrar()
   }
 
-  // En el celular, la confirmación espera a que el menú termine de
-  // cerrarse: si se abre antes, el menú todavía tiene el foco mientras
-  // la ventana de confirmación oculta el resto de la página.
   const salirPendiente = useRef(false)
 
   const confirmarYSalir = async () => {
@@ -79,7 +74,6 @@ function BarraLateral({ usuario, detalle, items, activo, onSeleccionar, variante
       >
         {!esEscritorio && (
           <div className="d-flex align-items-center gap-2 px-4 pt-3">
-            {/* La imagen del escudo trae margen transparente: se amplía dentro de un recuadro fijo. */}
             <span className="flex-shrink-0 d-inline-flex align-items-center justify-content-center" style={{ width: 54, height: 54 }}>
               <Image src="/logo.png" alt="Escudo del Club Deportivo" width={54} height={54} className="object-fit-contain" style={{ transform: 'scale(1.75)' }} />
             </span>

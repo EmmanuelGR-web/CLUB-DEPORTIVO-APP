@@ -1,4 +1,3 @@
-// Pedidos del socio a su propia cuenta (rutas /mi-cuenta del backend).
 import { pedir } from './api'
 
 export const iniciarSesionApi = (email, contrasena, recordar) =>

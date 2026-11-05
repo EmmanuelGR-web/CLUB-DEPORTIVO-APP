@@ -133,7 +133,6 @@ function Contratapa({ titulo, texto, onAsociarse }) {
 
 const disenos = { tapa: Tapa, indice: Indice, articulo: Articulo, contratapa: Contratapa }
 
-// El libro necesita llegar al elemento de cada hoja para darla vuelta.
 const PaginaRevista = forwardRef(function PaginaRevista({ pagina, numero, onAsociarse, className = '' }, ref) {
   const Diseno = disenos[pagina.tipo]
 

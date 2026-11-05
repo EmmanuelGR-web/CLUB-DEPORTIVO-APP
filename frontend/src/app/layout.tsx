@@ -18,8 +18,6 @@ export const viewport: Viewport = {
   themeColor: '#7a0f2e',
 };
 
-// El tema se aplica antes de pintar para que no haya un parpadeo claro
-// al entrar en modo oscuro.
 const temaInicial = `try{var t=localStorage.getItem('club:tema');if(!t&&matchMedia('(prefers-color-scheme: dark)').matches)t='oscuro';document.documentElement.setAttribute('data-bs-theme',t==='oscuro'?'dark':'light')}catch(e){}`;
 
 export default function LayoutRaiz({ children }: { children: React.ReactNode }) {

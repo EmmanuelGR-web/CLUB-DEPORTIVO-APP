@@ -1,7 +1,5 @@
 'use client'
 
-// Barra fija de abajo, como en las apps del celular. Se oculta en
-// pantallas grandes, donde está la barra lateral.
 function BarraInferior({ items, activo, onSeleccionar }) {
   return (
     <nav className="barra-inferior" aria-label="Accesos rápidos">

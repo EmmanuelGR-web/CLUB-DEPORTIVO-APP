@@ -9,7 +9,6 @@ export const enlacesInicio = [
   { etiqueta: 'Contacto', href: '#contacto' },
 ]
 
-// soloEscritorio: en el celular estas secciones están en la barra de abajo.
 export const menuSocio = [
   { id: 'resumen', etiqueta: 'Resumen', icono: FaThLarge, soloEscritorio: true },
   { id: 'datos', etiqueta: 'Datos personales', icono: FaUser },
@@ -19,8 +18,6 @@ export const menuSocio = [
   { id: 'beneficios', etiqueta: 'Beneficios', icono: FaGift, soloEscritorio: true },
 ]
 
-// Barra fija de abajo en el celular, igual en los tres paneles: el
-// resumen va en el medio.
 export const barraInferior = [
   { id: 'noticias', etiqueta: 'Noticias', icono: FaNewspaper },
   { id: 'resumen', etiqueta: 'Resumen', icono: FaThLarge, central: true },

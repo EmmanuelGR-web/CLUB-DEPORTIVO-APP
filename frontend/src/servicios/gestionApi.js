@@ -1,4 +1,3 @@
-// Pedidos del panel del personal (rutas /gestion del backend).
 import { pedir } from './api'
 
 export const obtenerPanelGestion = () => pedir('/gestion/panel')
